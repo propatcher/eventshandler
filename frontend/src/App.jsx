@@ -1,207 +1,196 @@
-import { useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import { api, getToken, setToken } from './lib/api';
+import { Logo, Grid, Bell, User as UserIcon, Shield, Logout } from './lib/icons';
+import Avatar from './components/Avatar';
+import Toasts from './components/Toasts';
+import ChatWidget from './components/ChatWidget';
+import AuthView from './views/AuthView';
+import DashboardView from './views/DashboardView';
+import NotificationsView from './views/NotificationsView';
+import ProfileView from './views/ProfileView';
+import AdminView from './views/AdminView';
 
 export default function App() {
-  // --- СОСТОЯНИЯ АВТОРИЗАЦИИ ---
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [user, setUser] = useState(null);
+  const [booting, setBooting] = useState(true);
+  const [view, setView] = useState('dashboard');
+  const [unread, setUnread] = useState(0);
+  const [toasts, setToasts] = useState([]);
+  const [chatOpen, setChatOpen] = useState(false);
 
-  // --- СОСТОЯНИЯ ДАШБОРДА ---
-  const [events, setEvents] = useState([
-    { 
-      id: 1, 
-      title: 'Защита дипломного проекта', 
-      date: '2026-06-20', 
-      description: 'Финальная защита веб-системы перед государственной комиссией.', 
-      status: 'Активно' 
-    },
-    { 
-      id: 2, 
-      title: 'Преддипломная практика (Сдача отчета)', 
-      date: '2026-05-25', 
-      description: 'Загрузка дневника практики и отчета в личный кабинет колледжа.', 
-      status: 'Планируется' 
-    }
-  ]);
+  const addToast = useCallback((t) => {
+    const id = Date.now() + Math.random();
+    setToasts((p) => [...p, { id, type: 'default', ...t }]);
+    setTimeout(() => setToasts((p) => p.filter((x) => x.id !== id)), 4000);
+  }, []);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [description, setDescription] = useState('');
-  const [status, setStatus] = useState('Планируется');
+  const refreshUnread = useCallback(async () => {
+    try { const { count } = await api.unreadCount(); setUnread(count); }
+    catch { /* ignore */ }
+  }, []);
 
-  // --- ЛОГИКА ---
-  const handleAuthSubmit = (e) => {
-    e.preventDefault();
-    // Имитация успешного входа
-    setIsAuthenticated(true);
-  };
+  const loadUser = useCallback(async () => {
+    const me = await api.me();
+    setUser(me);
+    setView('dashboard');
+    refreshUnread();
+  }, [refreshUnread]);
 
-  const handleCreateEvent = (e) => {
-    e.preventDefault();
-    if (!title || !date) return alert('Заполните название и дату!');
+  useEffect(() => {
+    (async () => {
+      if (getToken()) {
+        try { await loadUser(); } catch { setToken(null); }
+      }
+      setBooting(false);
+    })();
+  }, [loadUser]);
 
-    const newEvent = { id: Date.now(), title, date, description, status };
-    setEvents([newEvent, ...events]);
-    
-    setTitle(''); setDate(''); setDescription(''); setStatus('Планируется');
-    setIsModalOpen(false);
-  };
+  useEffect(() => {
+    if (!user) return;
+    const t = setInterval(refreshUnread, 25000);
+    return () => clearInterval(t);
+  }, [user, refreshUnread]);
 
-  const handleDeleteEvent = (id) => {
-    setEvents(events.filter(event => event.id !== id));
-  };
+  // Сессия истекла (401 на защищённом запросе) — мягко возвращаем на вход.
+  useEffect(() => {
+    const onExpired = () => { setUser(null); setView('dashboard'); setUnread(0); };
+    window.addEventListener('auth:expired', onExpired);
+    return () => window.removeEventListener('auth:expired', onExpired);
+  }, []);
 
-  // --- ЭКРАН АВТОРИЗАЦИИ ---
-  if (!isAuthenticated) {
+  // Автооткрытие чата поддержки после ~2 минут бездействия (один раз).
+  useEffect(() => {
+    if (!user) return;
+    let timer;
+    let opened = false;
+    const IDLE_MS = 120000;
+    const arm = () => {
+      clearTimeout(timer);
+      if (opened) return;
+      timer = setTimeout(() => { opened = true; setChatOpen(true); }, IDLE_MS);
+    };
+    const evs = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
+    evs.forEach((e) => window.addEventListener(e, arm, { passive: true }));
+    arm();
+    return () => { clearTimeout(timer); evs.forEach((e) => window.removeEventListener(e, arm)); };
+  }, [user]);
+
+  const logout = () => { setToken(null); setUser(null); setView('dashboard'); setUnread(0); };
+
+  if (booting) {
+    return <div className="min-h-screen grid place-items-center bg-neutral-50 text-neutral-400 text-sm">Загрузка…</div>;
+  }
+  if (!user) return <AuthView onAuthed={loadUser} />;
+
+  const nav = [
+    { key: 'dashboard', label: 'Мероприятия', icon: Grid },
+    { key: 'notifications', label: 'Уведомления', icon: Bell, badge: unread },
+    { key: 'profile', label: 'Кабинет', icon: UserIcon },
+    ...(user.role === 'admin' ? [{ key: 'admin', label: 'Админка', icon: Shield }] : []),
+  ];
+
+  const go = (key) => { setView(key); if (key === 'notifications') setTimeout(refreshUnread, 400); };
+
+  const Badge = ({ item, size }) => (
+    <span className="relative">
+      <item.icon width={size} height={size} />
+      {item.badge > 0 && (
+        <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold grid place-items-center">
+          {item.badge > 9 ? '9+' : item.badge}
+        </span>
+      )}
+    </span>
+  );
+
+  const NavButton = ({ item }) => {
+    const active = view === item.key;
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center p-4 font-sans">
-        <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-gray-100">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              {isLoginMode ? 'Вход в систему' : 'Регистрация'}
-            </h1>
-            <p className="text-gray-500">Платформа управления мероприятиями</p>
-          </div>
+      <button onClick={() => go(item.key)}
+        className={`relative flex items-center gap-3 rounded-lg transition px-3 py-2.5 text-sm w-full ${active ? 'bg-accent text-white shadow-lg shadow-indigo-500/30' : 'text-neutral-600 hover:bg-neutral-100'}`}>
+        <Badge item={item} size={18} />
+        <span className="font-medium">{item.label}</span>
+      </button>
+    );
+  };
 
-          <form onSubmit={handleAuthSubmit} className="space-y-5">
-            {!isLoginMode && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">ФИО / Название организации</label>
-                <input type="text" required className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="Иван Иванов"/>
-              </div>
-            )}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input type="email" required className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="admin@example.com"/>
+  const TabButton = ({ item }) => {
+    const active = view === item.key;
+    return (
+      <button onClick={() => go(item.key)}
+        className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition ${active ? 'text-indigo-600' : 'text-neutral-400'}`}>
+        {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-accent rounded-full" />}
+        <Badge item={item} size={22} />
+        {item.label}
+      </button>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-neutral-50 via-white to-neutral-100 text-neutral-900 overflow-x-hidden">
+      {/* декоративные акцентные пятна на фоне */}
+      <div className="pointer-events-none fixed -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-indigo-300/20 blur-3xl blob" />
+      <div className="pointer-events-none fixed top-1/3 -right-28 w-[30rem] h-[30rem] rounded-full bg-violet-300/20 blur-3xl blob" style={{ animationDelay: '-8s' }} />
+
+      {/* SIDEBAR (desktop) */}
+      <aside className="hidden md:flex fixed inset-y-0 left-0 w-60 bg-white/75 backdrop-blur-xl border-r border-neutral-200/70 flex-col p-4 z-30">
+        <button onClick={() => go('dashboard')} title="На главную"
+          className="flex items-center gap-2.5 px-2 py-2 mb-4 rounded-lg hover:bg-neutral-100 transition w-full">
+          <span className="grid place-items-center w-8 h-8 rounded-lg bg-accent text-white shadow-lg shadow-indigo-500/30"><Logo width={17} height={17} /></span>
+          <span className="font-semibold tracking-tight text-gradient">Evently</span>
+        </button>
+        <nav className="flex flex-col gap-1 flex-1">
+          {nav.map((item) => <NavButton key={item.key} item={item} />)}
+        </nav>
+        <div className="border-t border-neutral-100 pt-3 mt-3">
+          <button onClick={() => go('profile')} className="w-full flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-neutral-100 transition">
+            <Avatar user={user} size={36} />
+            <div className="min-w-0 text-left flex-1">
+              <p className="text-sm font-medium truncate">{user.full_name || `@${user.username}`}</p>
+              <p className="text-xs text-neutral-400 truncate">@{user.username}</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
-              <input type="password" required className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" placeholder="••••••••"/>
-            </div>
+          </button>
+          <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2 mt-1 rounded-lg text-sm text-neutral-500 hover:text-red-600 hover:bg-red-50 transition">
+            <Logout width={16} height={16} /> Выйти
+          </button>
+        </div>
+      </aside>
 
-            <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium py-3 transition-colors shadow-sm cursor-pointer">
-              {isLoginMode ? 'Войти' : 'Зарегистрироваться'}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <button 
-              onClick={() => setIsLoginMode(!isLoginMode)}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors cursor-pointer"
-            >
-              {isLoginMode ? 'Нет аккаунта? Создать' : 'Уже есть аккаунт? Войти'}
-            </button>
+      {/* TOPBAR (mobile) */}
+      <header className="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-neutral-200">
+        <div className="flex items-center justify-between px-4 h-14">
+          <button onClick={() => go('dashboard')} title="На главную" className="flex items-center gap-2">
+            <span className="grid place-items-center w-7 h-7 rounded-lg bg-accent text-white shadow-md shadow-indigo-500/30"><Logo width={15} height={15} /></span>
+            <span className="font-semibold tracking-tight text-gradient">Evently</span>
+          </button>
+          <div className="flex items-center gap-1">
+            <button onClick={() => go('profile')} className="grid place-items-center"><Avatar user={user} size={30} /></button>
+            <button onClick={logout} title="Выйти" className="grid place-items-center w-9 h-9 rounded-md text-neutral-500 hover:bg-neutral-100"><Logout width={17} height={17} /></button>
           </div>
         </div>
-      </div>
-    );
-  }
+      </header>
 
-  // --- ОСНОВНОЙ ДАШБОРД ---
-  return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans p-8">
-      <div className="max-w-5xl mx-auto">
-        
-        {/* Шапка дашборда */}
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Панель управления</h1>
-            <p className="text-gray-500 mt-1">Выпускная квалификационная работа</p>
-          </div>
-          <div className="flex gap-3 w-full sm:w-auto">
-            <button 
-              onClick={() => setIsAuthenticated(false)}
-              className="px-5 py-2.5 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-            >
-              Выйти
-            </button>
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm cursor-pointer whitespace-nowrap"
-            >
-              + Создать ивент
-            </button>
-          </div>
-        </header>
+      {/* CONTENT */}
+      <main className="md:ml-60 px-4 sm:px-8 pt-6 sm:pt-8 pb-28 md:pb-8">
+        <div className="max-w-6xl mx-auto">
+          <motion.div key={view}
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}>
+            {view === 'dashboard' && <DashboardView addToast={addToast} user={user} />}
+            {view === 'notifications' && <NotificationsView addToast={addToast} onChanged={refreshUnread} />}
+            {view === 'profile' && <ProfileView user={user} onUpdated={setUser} addToast={addToast} />}
+            {view === 'admin' && user.role === 'admin' && <AdminView addToast={addToast} />}
+          </motion.div>
+        </div>
+      </main>
 
-        {/* Сетка карточек */}
-        {events.length === 0 ? (
-          <div className="text-center py-20 bg-white border border-dashed border-gray-300 rounded-xl">
-            <p className="text-gray-500 text-lg">Список мероприятий пуст. Добавьте первое!</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => (
-              <div key={event.id} className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-                <div>
-                  <div className="flex justify-between items-start mb-4">
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                      event.status === 'Активно' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {event.status}
-                    </span>
-                  </div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-2 break-words">{event.title}</h2>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3 break-words">{event.description || 'Описание отсутствует'}</p>
-                </div>
+      {/* BOTTOM TAB BAR (mobile) */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-neutral-200 flex pb-[env(safe-area-inset-bottom)]">
+        {nav.map((item) => <TabButton key={item.key} item={item} />)}
+      </nav>
 
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <div className="flex items-center text-gray-500 text-sm mb-4">
-                    <svg className="w-4 h-4 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                    {event.date}
-                  </div>
-                  <div className="flex justify-end">
-                    <button 
-                      onClick={() => handleDeleteEvent(event.id)}
-                      className="text-red-500 hover:text-red-700 font-medium text-sm transition-colors cursor-pointer"
-                    >
-                      Удалить
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* МОДАЛЬНОЕ ОКНО */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-fade-in">
-            <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl relative">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">Новое мероприятие</h3>
-              
-              <form onSubmit={handleCreateEvent} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Название мероприятия *</label>
-                  <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Дата проведения *</label>
-                  <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Описание</label>
-                  <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows="3" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 resize-none" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Статус</label>
-                  <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:border-blue-500">
-                    <option value="Планируется">Планируется</option>
-                    <option value="Активно">Активно</option>
-                  </select>
-                </div>
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer">Отмена</button>
-                  <button type="submit" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-sm cursor-pointer">Добавить</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-      </div>
+      <ChatWidget open={chatOpen} setOpen={setChatOpen} />
+      <Toasts toasts={toasts} />
     </div>
   );
 }
