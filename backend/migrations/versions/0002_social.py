@@ -17,7 +17,6 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # --- users: username + role ---
     op.add_column("users", sa.Column("username", sa.String(length=50), nullable=True))
     op.add_column(
         "users",
@@ -25,13 +24,10 @@ def upgrade() -> None:
             "role", sa.String(length=20), nullable=False, server_default="user"
         ),
     )
-    # Бэкфилл @username для уже существующих пользователей.
     op.execute("UPDATE users SET username = 'user' || id WHERE username IS NULL")
-    # Первый пользователь становится администратором.
     op.execute("UPDATE users SET role = 'admin' WHERE id = 1")
     op.create_index("ix_users_username", "users", ["username"], unique=True)
 
-    # --- event_participants ---
     op.create_table(
         "event_participants",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
@@ -53,7 +49,6 @@ def upgrade() -> None:
         "ix_event_participants_user_id", "event_participants", ["user_id"]
     )
 
-    # --- notifications ---
     op.create_table(
         "notifications",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),

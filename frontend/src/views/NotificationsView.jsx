@@ -5,11 +5,11 @@ import { Sparkles, Users, Megaphone, Bell, Check, Close, Reply, Send, Clock } fr
 
 const ICONS = { welcome: Sparkles, invite: Users, broadcast: Megaphone, reply: Reply, reminder: Clock, system: Bell };
 const TINTS = {
-  welcome: 'bg-violet-50 text-violet-600',
-  invite: 'bg-indigo-50 text-indigo-600',
-  broadcast: 'bg-amber-50 text-amber-600',
-  reply: 'bg-sky-50 text-sky-600',
-  reminder: 'bg-teal-50 text-teal-600',
+  welcome: 'bg-neutral-100 text-neutral-900',
+  invite: 'bg-neutral-100 text-neutral-900',
+  broadcast: 'bg-neutral-100 text-neutral-700',
+  reply: 'bg-neutral-100 text-neutral-700',
+  reminder: 'bg-neutral-100 text-neutral-700',
   system: 'bg-neutral-100 text-neutral-500',
 };
 const TYPE_LABEL = { welcome: 'Приветствие', invite: 'Приглашение', broadcast: 'Новость', reply: 'Ответ', reminder: 'Напоминание', system: 'Событие' };
@@ -27,7 +27,7 @@ const tap = { whileTap: { scale: 0.92 }, whileHover: { scale: 1.03 }, transition
 export default function NotificationsView({ addToast, onChanged }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState(null); // открытый виджет
+  const [selected, setSelected] = useState(null);
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
 
@@ -37,14 +37,16 @@ export default function NotificationsView({ addToast, onChanged }) {
     catch (e) { addToast({ type: 'error', text: e.message }); }
     finally { setLoading(false); }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
+  useEffect(() => { load(); }, []);
 
   const markReadLocal = (id) => setItems((p) => p.map((x) => (x.id === id ? { ...x, is_read: true } : x)));
 
   const openDetail = async (n) => {
     setSelected(n); setReplyText('');
     if (!n.is_read) {
-      try { await api.readNotification(n.id); markReadLocal(n.id); onChanged?.(); } catch { /* ignore */ }
+      try { await api.readNotification(n.id); markReadLocal(n.id); onChanged?.(); } catch {}
     }
   };
 
@@ -91,10 +93,21 @@ export default function NotificationsView({ addToast, onChanged }) {
       </div>
 
       {loading ? (
-        <div className="text-center py-24 text-neutral-400 text-sm">Загрузка…</div>
+        <div className="space-y-2.5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex gap-3 p-4 rounded-xl border border-neutral-200 bg-white">
+              <div className="skeleton w-9 h-9 rounded-lg shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="skeleton h-4 w-2/5 mb-2" />
+                <div className="skeleton h-3.5 w-3/4 mb-2" />
+                <div className="skeleton h-3 w-1/4" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : items.length === 0 ? (
         <div className="border border-dashed border-neutral-300 rounded-xl bg-white py-20 text-center">
-          <span className="grid place-items-center w-11 h-11 rounded-lg bg-neutral-100 text-neutral-400 mx-auto mb-4"><Bell width={20} height={20} /></span>
+          <span className="grid place-items-center w-12 h-12 rounded-2xl bg-neutral-100 text-neutral-900 mx-auto mb-4"><Bell width={22} height={22} /></span>
           <p className="font-medium text-neutral-700">Уведомлений нет</p>
         </div>
       ) : (
@@ -111,7 +124,7 @@ export default function NotificationsView({ addToast, onChanged }) {
                   whileTap={{ scale: 0.99 }}
                   style={{ transformOrigin: 'center' }}
                   onClick={() => openDetail(n)}
-                  className={`flex gap-3 p-4 rounded-xl border cursor-pointer hover:shadow-md transition-shadow ${n.is_read ? 'bg-white border-neutral-200' : 'bg-indigo-50/40 border-indigo-100'}`}
+                  className={`flex gap-3 p-4 rounded-xl border cursor-pointer hover:shadow-md transition-shadow ${n.is_read ? 'bg-white border-neutral-200' : 'bg-neutral-100/40 border-neutral-200'}`}
                 >
                   <span className={`grid place-items-center w-9 h-9 rounded-lg shrink-0 ${TINTS[n.type] || TINTS.system}`}><Ico width={17} height={17} /></span>
                   <div className="min-w-0 flex-1">
@@ -122,7 +135,7 @@ export default function NotificationsView({ addToast, onChanged }) {
                     {n.body && <p className="text-sm text-neutral-600 mt-0.5 line-clamp-1">{n.body}</p>}
                     <p className="text-[11px] text-neutral-400 mt-1">{TYPE_LABEL[n.type] || 'Уведомление'} · нажмите, чтобы открыть</p>
                   </div>
-                  {!n.is_read && <span className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 shrink-0" />}
+                  {!n.is_read && <span className="w-2 h-2 rounded-full bg-neutral-900 mt-1.5 shrink-0" />}
                 </motion.div>
               );
             })}
@@ -130,7 +143,6 @@ export default function NotificationsView({ addToast, onChanged }) {
         </div>
       )}
 
-      {/* ВИДЖЕТ ПОДРОБНОСТЕЙ */}
       <AnimatePresence>
         {selected && (
           <motion.div
@@ -183,7 +195,7 @@ function DetailWidget({ n, replyText, setReplyText, sending, onClose, onRespond,
 
         {isInvite && (
           <div className="flex gap-2 mt-5">
-            <motion.button {...tap} onClick={() => onRespond(n, true)} className="inline-flex items-center gap-1.5 bg-neutral-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-neutral-800"><Check width={14} height={14} /> Принять</motion.button>
+            <motion.button {...tap} onClick={() => onRespond(n, true)} className="btn-accent inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-xl"><Check width={14} height={14} /> Принять</motion.button>
             <motion.button {...tap} onClick={() => onRespond(n, false)} className="inline-flex items-center gap-1.5 border border-neutral-300 text-neutral-600 text-sm font-medium px-4 py-2 rounded-lg hover:bg-neutral-50"><Close width={14} height={14} /> Отклонить</motion.button>
           </div>
         )}
@@ -195,11 +207,11 @@ function DetailWidget({ n, replyText, setReplyText, sending, onClose, onRespond,
               <textarea
                 autoFocus value={replyText} onChange={(e) => setReplyText(e.target.value)} rows="2"
                 placeholder="Ваш ответ…"
-                className="flex-1 border border-neutral-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10 transition resize-none"
+                className="flex-1 border border-neutral-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/15 transition resize-none"
                 onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) onReply(n); }}
               />
               <motion.button {...tap} disabled={sending || !replyText.trim()} onClick={() => onReply(n)}
-                className="grid place-items-center w-10 h-10 bg-neutral-900 text-white rounded-lg disabled:opacity-40 hover:bg-neutral-800">
+                className="btn-accent grid place-items-center w-10 h-10 rounded-lg disabled:opacity-40">
                 <Send width={16} height={16} />
               </motion.button>
             </div>

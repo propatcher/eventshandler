@@ -1,8 +1,6 @@
-// Детерминированный цвет аватара по строке (username/email).
 const PALETTE = [
-  ['#4f46e5', '#7c3aed'], ['#0ea5e9', '#2563eb'], ['#059669', '#0d9488'],
-  ['#d97706', '#ea580c'], ['#db2777', '#e11d48'], ['#7c3aed', '#a21caf'],
-  ['#0891b2', '#0e7490'], ['#65a30d', '#16a34a'],
+  ['#171717'], ['#262626'], ['#404040'], ['#525252'],
+  ['#0a0a0a'], ['#373737'], ['#4b4b4b'], ['#2e2e2e'],
 ];
 
 function hash(str = '') {
@@ -11,7 +9,7 @@ function hash(str = '') {
   return Math.abs(h);
 }
 
-export function initialsOf(user) {
+function initialsOf(user) {
   if (user?.full_name) {
     return user.full_name.split(' ').filter(Boolean).slice(0, 2)
       .map((w) => w[0].toUpperCase()).join('');
@@ -35,14 +33,14 @@ export default function Avatar({ user, size = 36, className = '' }) {
   }
 
   const key = user?.username || user?.email || '?';
-  const [c1, c2] = PALETTE[hash(key) % PALETTE.length];
+  const [c1] = PALETTE[hash(key) % PALETTE.length];
   return (
     <span
       className={`inline-grid place-items-center rounded-full text-white font-semibold select-none ${className}`}
       style={{
         width: size, height: size,
         fontSize: size * 0.4,
-        background: `linear-gradient(135deg, ${c1}, ${c2})`,
+        background: c1,
       }}
       title={title}
     >

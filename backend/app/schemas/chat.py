@@ -9,7 +9,6 @@ class ChatMessage(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    # История диалога (последние сообщения). Последним идёт новый вопрос пользователя.
     messages: list[ChatMessage] = Field(..., min_length=1, max_length=30)
 
 

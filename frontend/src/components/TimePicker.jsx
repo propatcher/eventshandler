@@ -13,7 +13,7 @@ export default function TimePicker({ value, onChange }) {
   const pickM = (nm) => { onChange(`${h || '00'}:${nm}`); setOpen(false); };
 
   const cell = (active) =>
-    `w-full text-center py-1.5 text-sm rounded-md transition ${active ? 'bg-neutral-900 text-white font-semibold' : 'text-neutral-700 hover:bg-neutral-100'}`;
+    `w-full text-center py-1.5 text-sm rounded-md transition ${active ? 'bg-accent text-white font-semibold' : 'text-neutral-700 hover:bg-neutral-100'}`;
 
   return (
     <div className="border border-neutral-300 rounded-lg overflow-hidden">
@@ -33,7 +33,7 @@ export default function TimePicker({ value, onChange }) {
             title="Очистить"
           >✕</span>
         )}
-        <span className={`ml-auto text-neutral-400 text-[10px] transition-transform ${open ? 'rotate-180' : ''}`}>▼</span>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`ml-auto text-neutral-400 transition-transform ${open ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
       </button>
 
       {open && (

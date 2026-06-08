@@ -10,13 +10,11 @@ import Modal from '../components/Modal';
 import Calendar from '../components/Calendar';
 import TimePicker from '../components/TimePicker';
 import StatusPicker from '../components/StatusPicker';
-import DurationPicker, { formatDuration } from '../components/DurationPicker';
+import DurationPicker from '../components/DurationPicker';
+import { formatDuration } from '../lib/format';
+import { inputCls } from '../lib/ui';
 import EventChatModal from '../components/EventChatModal';
 
-const inputCls =
-  'w-full border border-neutral-300 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 transition';
-
-// Момент начала (дата + время) с учётом локального часового пояса.
 function eventStart(ev) {
   if (!ev?.date || !ev.time) return null;
   const [h, m] = ev.time.split(':').map(Number);
@@ -25,14 +23,14 @@ function eventStart(ev) {
   d.setHours(h, m, 0, 0);
   return d;
 }
-// Момент окончания: начало + длительность (если задана).
+
 function eventEnd(ev) {
   const start = eventStart(ev);
   if (!start) return null;
   if (ev.duration_minutes) return new Date(start.getTime() + ev.duration_minutes * 60000);
   return start;
 }
-// Прошло ли мероприятие: по окончании (если есть время) либо по концу суток.
+
 function isPast(ev) {
   const end = eventEnd(ev);
   const now = Date.now();
@@ -40,7 +38,7 @@ function isPast(ev) {
   if (!ev?.date) return false;
   return new Date(ev.date + 'T23:59:59').getTime() < now;
 }
-// Идёт ли прямо сейчас (только при заданных времени и длительности).
+
 function isOngoing(ev) {
   const start = eventStart(ev);
   const end = eventEnd(ev);
@@ -54,9 +52,9 @@ function fmtClock(d) {
 function statusInfo(ev) {
   if (ev.status === 'Завершено') return { label: 'Завершено', dot: 'bg-neutral-400', chip: 'bg-neutral-100 text-neutral-500' };
   if (isPast(ev)) return { label: 'Прошло', dot: 'bg-neutral-400', chip: 'bg-neutral-100 text-neutral-500' };
-  if (isOngoing(ev)) return { label: 'Идёт сейчас', dot: 'bg-emerald-500 animate-pulse', chip: 'bg-emerald-50 text-emerald-700' };
-  if (ev.status === 'Активно') return { label: 'Активно', dot: 'bg-emerald-500', chip: 'bg-emerald-50 text-emerald-700' };
-  return { label: 'Планируется', dot: 'bg-amber-500', chip: 'bg-amber-50 text-amber-700' };
+  if (isOngoing(ev)) return { label: 'Идёт сейчас', dot: 'bg-neutral-600 animate-pulse', chip: 'bg-neutral-100 text-neutral-700' };
+  if (ev.status === 'Активно') return { label: 'Активно', dot: 'bg-neutral-600', chip: 'bg-neutral-100 text-neutral-700' };
+  return { label: 'Планируется', dot: 'bg-neutral-600', chip: 'bg-neutral-100 text-neutral-700' };
 }
 function StatusBadge({ ev }) {
   const s = statusInfo(ev);
@@ -93,9 +91,10 @@ export default function DashboardView({ addToast, user }) {
     catch (e) { addToast({ type: 'error', text: e.message }); }
     finally { setLoading(false); }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
-  // Тик раз в 30 с — чтобы события «падали в прошедшее» без перезагрузки страницы.
+  // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
+  useEffect(() => { load(); }, []);
+
   useEffect(() => {
     const t = setInterval(() => setTick((n) => n + 1), 30000);
     return () => clearInterval(t);
@@ -157,7 +156,7 @@ export default function DashboardView({ addToast, user }) {
 
   const openManage = async (event) => {
     setManage(event); setPQuery(''); setResults([]); setParticipants([]);
-    try { setParticipants(await api.participants(event.id)); } catch { /* ignore */ }
+    try { setParticipants(await api.participants(event.id)); } catch {}
   };
   const search = async (q) => {
     setPQuery(q);
@@ -181,6 +180,8 @@ export default function DashboardView({ addToast, user }) {
       if (!q) return true;
       return [e.title, e.description, e.location, e.owner_username].some((v) => (v || '').toLowerCase().includes(q));
     });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events, query, filter, tick]);
 
   const owned = events.filter((e) => e.is_owner).length;
@@ -208,7 +209,7 @@ export default function DashboardView({ addToast, user }) {
           <div className="flex gap-1.5 bg-neutral-100 rounded-lg p-1 overflow-x-auto">
             {[['all', 'Все'], ['Активно', 'Активные'], ['Планируется', 'Планируются'], ['passed', 'Прошедшие']].map(([key, label]) => (
               <button key={key} onClick={() => setFilter(key)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition whitespace-nowrap ${filter === key ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-100' : 'text-neutral-500 hover:text-neutral-800'}`}>
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition whitespace-nowrap ${filter === key ? 'bg-white text-neutral-900 shadow-sm ring-1 ring-neutral-200' : 'text-neutral-500 hover:text-neutral-800'}`}>
                 {label}
               </button>
             ))}
@@ -237,7 +238,7 @@ export default function DashboardView({ addToast, user }) {
         </div>
       ) : events.length === 0 ? (
         <div className="border border-dashed border-neutral-300 rounded-xl bg-white py-20 px-6 text-center">
-          <span className="grid place-items-center w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-500 mx-auto mb-4"><CalendarIcon width={22} height={22} /></span>
+          <span className="grid place-items-center w-12 h-12 rounded-2xl bg-neutral-100 text-neutral-900 mx-auto mb-4"><CalendarIcon width={22} height={22} /></span>
           <p className="font-medium text-neutral-700">Список пуст</p>
           <p className="text-neutral-400 text-sm mt-1">Создайте первое мероприятие или дождитесь приглашения.</p>
         </div>
@@ -257,20 +258,20 @@ export default function DashboardView({ addToast, user }) {
                   initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
                   whileHover={{ y: -4 }}
                   transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-                  className={`group bg-white border rounded-2xl p-5 shadow-soft hover:shadow-soft-lg transition-shadow flex flex-col ${past ? 'border-neutral-200 opacity-80' : 'border-neutral-200 hover:border-indigo-200'}`}
+                  className={`group bg-white border rounded-2xl p-5 shadow-soft hover:shadow-soft-lg transition-shadow flex flex-col ${past ? 'border-neutral-200 opacity-80' : 'border-neutral-200 hover:border-neutral-300'}`}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <StatusBadge ev={event} />
                     {event.is_owner ? (
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
                         {event.status !== 'Завершено' && (
-                          <button onClick={() => markPassed(event)} title="Отметить прошедшим" className="grid place-items-center w-7 h-7 rounded-md text-neutral-400 hover:text-emerald-600 hover:bg-emerald-50"><CheckCircle width={15} height={15} /></button>
+                          <button onClick={() => markPassed(event)} title="Отметить прошедшим" className="grid place-items-center w-7 h-7 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100"><CheckCircle width={15} height={15} /></button>
                         )}
                         <button onClick={() => openEdit(event)} title="Редактировать" className="grid place-items-center w-7 h-7 rounded-md text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100"><Edit width={15} height={15} /></button>
                         <button onClick={() => remove(event.id)} title="Удалить" className="grid place-items-center w-7 h-7 rounded-md text-neutral-400 hover:text-red-600 hover:bg-red-50"><Trash width={15} height={15} /></button>
                       </div>
                     ) : (
-                      <span className="text-[11px] font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">участник</span>
+                      <span className="text-[11px] font-medium text-neutral-900 bg-neutral-100 px-2 py-0.5 rounded-full">участник</span>
                     )}
                   </div>
                   <h3 className="font-semibold text-[15px] leading-snug mb-1.5">{event.title}</h3>
@@ -294,9 +295,9 @@ export default function DashboardView({ addToast, user }) {
                   <div className="mt-4 pt-3 border-t border-neutral-100 flex items-center justify-between gap-2">
                     <span className="inline-flex items-center gap-1.5 text-neutral-500 text-sm"><Users width={14} height={14} /> {event.participants_count}</span>
                     <div className="flex items-center gap-3">
-                      <button onClick={() => setChatEvent(event)} className="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-700 hover:text-indigo-600"><Chat width={15} height={15} /> Чат</button>
+                      <button onClick={() => setChatEvent(event)} className="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-700 hover:text-neutral-900"><Chat width={15} height={15} /> Чат</button>
                       {event.is_owner ? (
-                        <button onClick={() => openManage(event)} className="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-700 hover:text-indigo-600"><Users width={15} height={15} /> Пригласить</button>
+                        <button onClick={() => openManage(event)} className="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-700 hover:text-neutral-900"><Users width={15} height={15} /> Пригласить</button>
                       ) : (
                         <button onClick={() => leave(event.id)} className="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 hover:text-red-600"><LogoutDoor width={15} height={15} /> Покинуть</button>
                       )}
@@ -312,7 +313,6 @@ export default function DashboardView({ addToast, user }) {
         </motion.div>
       )}
 
-      {/* СОЗДАНИЕ / РЕДАКТИРОВАНИЕ */}
       <Modal open={formOpen} onClose={() => setFormOpen(false)} title={editing ? 'Редактировать мероприятие' : 'Новое мероприятие'}>
         <form onSubmit={saveEvent} className="space-y-4">
           <label className="block"><span className="block text-sm font-medium text-neutral-700 mb-1.5">Название</span>
@@ -347,7 +347,6 @@ export default function DashboardView({ addToast, user }) {
         </form>
       </Modal>
 
-      {/* УЧАСТНИКИ */}
       <Modal open={!!manage} onClose={() => setManage(null)} title={`Участники · ${manage?.title || ''}`}>
         <div className="space-y-4">
           <div>
@@ -392,7 +391,6 @@ export default function DashboardView({ addToast, user }) {
         </div>
       </Modal>
 
-      {/* ЧАТ МЕРОПРИЯТИЯ */}
       <EventChatModal event={chatEvent} currentUser={user} onClose={() => setChatEvent(null)} addToast={addToast} />
     </div>
   );
@@ -400,8 +398,8 @@ export default function DashboardView({ addToast, user }) {
 
 function ParticipantPill({ status }) {
   const map = {
-    accepted: ['Принял', 'bg-emerald-50 text-emerald-700'],
-    invited: ['Приглашён', 'bg-amber-50 text-amber-700'],
+    accepted: ['Принял', 'bg-neutral-100 text-neutral-700'],
+    invited: ['Приглашён', 'bg-neutral-100 text-neutral-700'],
     declined: ['Отклонил', 'bg-neutral-100 text-neutral-500'],
   };
   const [label, cls] = map[status] || [status, 'bg-neutral-100 text-neutral-500'];

@@ -1,5 +1,3 @@
-// В Docker фронт собирается с VITE_API_URL=/api/v1 (через Nginx-прокси).
-// В dev по умолчанию бьём напрямую в бэкенд на :8000.
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 const TOKEN_KEY = 'eh_token';
 
@@ -29,7 +27,7 @@ async function req(path, { method = 'GET', body, auth = true } = {}) {
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    // Истёкший/недействительный токен на защищённом запросе — мягкий выход.
+
     if (res.status === 401 && auth && token) {
       setToken(null);
       window.dispatchEvent(new CustomEvent('auth:expired'));

@@ -5,10 +5,9 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
 
-# Метаданные моделей и URL берём из приложения.
 from app.core.config import DATABASE_URL
 from app.core.database import Base
-import app.models  # noqa: F401  (регистрирует все модели в Base.metadata)
+import app.models
 
 config = context.config
 

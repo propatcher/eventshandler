@@ -9,10 +9,8 @@ from sqlalchemy.orm import DeclarativeBase
 
 from app.core.config import DATABASE_URL
 
-# Асинхронный движок SQLAlchemy.
 engine = create_async_engine(DATABASE_URL, echo=False, future=True)
 
-# Фабрика асинхронных сессий.
 async_session_factory = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,

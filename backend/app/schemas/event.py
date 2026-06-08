@@ -6,7 +6,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.schemas.user import UserPublic
 
 
-# Длительность: от 1 минуты до 30 суток.
 _MAX_DURATION_MINUTES = 30 * 24 * 60
 
 
@@ -44,7 +43,6 @@ class EventRead(EventBase):
     owner_username: str | None = None
     is_owner: bool = True
     participants_count: int = 0
-    # Вычисляемые поля: момент окончания и признак «уже прошло».
     ends_at: datetime | None = None
     is_past: bool = False
 

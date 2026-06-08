@@ -5,6 +5,7 @@ import { Logo, Grid, Bell, User as UserIcon, Shield, Logout } from './lib/icons'
 import Avatar from './components/Avatar';
 import Toasts from './components/Toasts';
 import ChatWidget from './components/ChatWidget';
+import BackgroundDecor from './components/BackgroundDecor';
 import AuthView from './views/AuthView';
 import DashboardView from './views/DashboardView';
 import NotificationsView from './views/NotificationsView';
@@ -27,7 +28,7 @@ export default function App() {
 
   const refreshUnread = useCallback(async () => {
     try { const { count } = await api.unreadCount(); setUnread(count); }
-    catch { /* ignore */ }
+    catch {}
   }, []);
 
   const loadUser = useCallback(async () => {
@@ -52,14 +53,12 @@ export default function App() {
     return () => clearInterval(t);
   }, [user, refreshUnread]);
 
-  // Сессия истекла (401 на защищённом запросе) — мягко возвращаем на вход.
   useEffect(() => {
     const onExpired = () => { setUser(null); setView('dashboard'); setUnread(0); };
     window.addEventListener('auth:expired', onExpired);
     return () => window.removeEventListener('auth:expired', onExpired);
   }, []);
 
-  // Автооткрытие чата поддержки после ~2 минут бездействия (один раз).
   useEffect(() => {
     if (!user) return;
     let timer;
@@ -75,6 +74,27 @@ export default function App() {
     arm();
     return () => { clearTimeout(timer); evs.forEach((e) => window.removeEventListener(e, arm)); };
   }, [user]);
+
+  // Нижнее меню «прилипает» к нижней грани видимой области при зуме на телефоне
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const nav = document.getElementById('mobile-tabbar');
+      if (!nav) return;
+      const offset = window.innerHeight - (vv.height + vv.offsetTop);
+      nav.style.transform = offset > 1 ? `translateY(${-offset}px)` : '';
+    };
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+      window.removeEventListener('scroll', update);
+    };
+  }, []);
 
   const logout = () => { setToken(null); setUser(null); setView('dashboard'); setUnread(0); };
 
@@ -96,7 +116,7 @@ export default function App() {
     <span className="relative">
       <item.icon width={size} height={size} />
       {item.badge > 0 && (
-        <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold grid place-items-center">
+        <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-neutral-900 text-white text-[10px] font-bold grid place-items-center">
           {item.badge > 9 ? '9+' : item.badge}
         </span>
       )}
@@ -107,7 +127,7 @@ export default function App() {
     const active = view === item.key;
     return (
       <button onClick={() => go(item.key)}
-        className={`relative flex items-center gap-3 rounded-lg transition px-3 py-2.5 text-sm w-full ${active ? 'bg-accent text-white shadow-lg shadow-indigo-500/30' : 'text-neutral-600 hover:bg-neutral-100'}`}>
+        className={`relative flex items-center gap-3 rounded-lg transition px-3 py-2.5 text-sm w-full ${active ? 'bg-accent text-white shadow-sm' : 'text-neutral-600 hover:bg-neutral-100'}`}>
         <Badge item={item} size={18} />
         <span className="font-medium">{item.label}</span>
       </button>
@@ -118,7 +138,7 @@ export default function App() {
     const active = view === item.key;
     return (
       <button onClick={() => go(item.key)}
-        className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition ${active ? 'text-indigo-600' : 'text-neutral-400'}`}>
+        className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition ${active ? 'text-neutral-900' : 'text-neutral-400'}`}>
         {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-accent rounded-full" />}
         <Badge item={item} size={22} />
         {item.label}
@@ -127,17 +147,14 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-neutral-50 via-white to-neutral-100 text-neutral-900 overflow-x-hidden">
-      {/* декоративные акцентные пятна на фоне */}
-      <div className="pointer-events-none fixed -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-indigo-300/20 blur-3xl blob" />
-      <div className="pointer-events-none fixed top-1/3 -right-28 w-[30rem] h-[30rem] rounded-full bg-violet-300/20 blur-3xl blob" style={{ animationDelay: '-8s' }} />
+    <div className="min-h-screen bg-neutral-50 geo-grid isolate text-neutral-900 overflow-x-hidden">
+      <BackgroundDecor />
 
-      {/* SIDEBAR (desktop) */}
       <aside className="hidden md:flex fixed inset-y-0 left-0 w-60 bg-white/75 backdrop-blur-xl border-r border-neutral-200/70 flex-col p-4 z-30">
         <button onClick={() => go('dashboard')} title="На главную"
           className="flex items-center gap-2.5 px-2 py-2 mb-4 rounded-lg hover:bg-neutral-100 transition w-full">
-          <span className="grid place-items-center w-8 h-8 rounded-lg bg-accent text-white shadow-lg shadow-indigo-500/30"><Logo width={17} height={17} /></span>
-          <span className="font-semibold tracking-tight text-gradient">Evently</span>
+          <span className="grid place-items-center w-8 h-8 rounded-lg bg-accent text-white shadow-sm"><Logo width={17} height={17} /></span>
+          <span className="font-semibold tracking-tight text-gradient">Eventlys</span>
         </button>
         <nav className="flex flex-col gap-1 flex-1">
           {nav.map((item) => <NavButton key={item.key} item={item} />)}
@@ -156,12 +173,11 @@ export default function App() {
         </div>
       </aside>
 
-      {/* TOPBAR (mobile) */}
       <header className="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-neutral-200">
         <div className="flex items-center justify-between px-4 h-14">
           <button onClick={() => go('dashboard')} title="На главную" className="flex items-center gap-2">
-            <span className="grid place-items-center w-7 h-7 rounded-lg bg-accent text-white shadow-md shadow-indigo-500/30"><Logo width={15} height={15} /></span>
-            <span className="font-semibold tracking-tight text-gradient">Evently</span>
+            <span className="grid place-items-center w-7 h-7 rounded-lg bg-accent text-white shadow-sm"><Logo width={15} height={15} /></span>
+            <span className="font-semibold tracking-tight text-gradient">Eventlys</span>
           </button>
           <div className="flex items-center gap-1">
             <button onClick={() => go('profile')} className="grid place-items-center"><Avatar user={user} size={30} /></button>
@@ -170,7 +186,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* CONTENT */}
       <main className="md:ml-60 px-4 sm:px-8 pt-6 sm:pt-8 pb-28 md:pb-8">
         <div className="max-w-6xl mx-auto">
           <motion.div key={view}
@@ -184,8 +199,7 @@ export default function App() {
         </div>
       </main>
 
-      {/* BOTTOM TAB BAR (mobile) */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-neutral-200 flex pb-[env(safe-area-inset-bottom)]">
+      <nav id="mobile-tabbar" className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-neutral-200 flex pb-[env(safe-area-inset-bottom)]">
         {nav.map((item) => <TabButton key={item.key} item={item} />)}
       </nav>
 

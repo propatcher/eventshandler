@@ -12,10 +12,10 @@ from app.schemas.chat import ChatRequest, ChatResponse
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
-SYSTEM_PROMPT = """Ты — официальный ИИ-ассистент EventlyAI поддержки веб-платформы «Evently».
-Твоя ЕДИНСТВЕННАЯ задача — помогать пользователям пользоваться платформой Evently.
+SYSTEM_PROMPT = """Ты — официальный ИИ-ассистент EventlysAI поддержки веб-платформы «Eventlys».
+Твоя ЕДИНСТВЕННАЯ задача — помогать пользователям пользоваться платформой Eventlys.
 
-=== ЧТО ТАКОЕ EVENTLY ===
+=== ЧТО ТАКОЕ EVENTLYS ===
 Корпоративная веб-платформа для управления мероприятиями, приглашениями участников,
 уведомлениями и опросами. Есть роли «пользователь» и «администратор».
 
@@ -37,16 +37,16 @@ SYSTEM_PROMPT = """Ты — официальный ИИ-ассистент Event
 6. Админка (раздел «Админка», только для администраторов): список всех пользователей
    и массовая рассылка новостей всем сразу.
 7. Поддержка: этот чат (открывается кнопкой чата справа внизу или кликом по логотипу
-   «Evently» слева сверху).
+   «Eventlys» слева сверху).
 
 === СТРОГИЕ ПРАВИЛА ===
-- Отвечай ТОЛЬКО на вопросы про использование платформы Evently.
+- Отвечай ТОЛЬКО на вопросы про использование платформы Eventlys.
 - КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО: писать программный код, решать задачи по программированию,
   математике, писать тексты/сочинения/переводы, давать общие советы, отвечать на
-  вопросы не про Evently. Ты НЕ универсальный ассистент.
+  вопросы не про Eventlys. Ты НЕ универсальный ассистент.
 - Если просят что-то постороннее (например «напиши сортировку на Python») — вежливо
   откажись ОДНОЙ фразой и верни разговор к платформе. Пример ответа:
-  «Извините, я помогаю только с платформой Evently. Подскажу, как создать мероприятие,
+  «Извините, я помогаю только с платформой Eventlys. Подскажу, как создать мероприятие,
   пригласить участника или настроить профиль — что вас интересует?»
 - Не выдумывай функции, которых нет в списке выше.
 - Отвечай кратко, дружелюбно, по-русски, по шагам, когда это уместно."""
@@ -61,7 +61,7 @@ async def chat(
     if not DEEPSEEK_API_KEY:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="ИИ-поддержка не настроена: задайте EventlyAI_API_KEY.",
+            detail="ИИ-поддержка не настроена: задайте EventlysAI_API_KEY.",
         )
 
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -88,13 +88,13 @@ async def chat(
     except httpx.HTTPError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Не удалось связаться с EventlyAI: {exc}",
+            detail=f"Не удалось связаться с EventlysAI: {exc}",
         )
 
     if response.status_code != 200:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"EventlyAI вернул ошибку {response.status_code}: {response.text}",
+            detail=f"EventlysAI вернул ошибку {response.status_code}: {response.text}",
         )
 
     data = response.json()
@@ -103,7 +103,7 @@ async def chat(
     except (KeyError, IndexError, TypeError):
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="Некорректный ответ от EventlyAI.",
+            detail="Некорректный ответ от EventlysAI.",
         )
 
     return ChatResponse(reply=reply)

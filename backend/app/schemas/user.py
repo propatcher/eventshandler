@@ -10,8 +10,6 @@ _USERNAME_RE = re.compile(r"^[A-Za-z0-9_]{3,30}$")
 
 
 def validate_password(v: str) -> str:
-    # PydanticCustomError даёт чистое сообщение без префикса «Value error,»
-    # и стабильный код ошибки для клиента.
     if len(v) < 8 or not re.search(r"[A-Za-z]", v) or not re.search(r"\d", v):
         raise PydanticCustomError("weak_password", PASSWORD_RULES)
     return v
@@ -36,7 +34,6 @@ class UserCreate(BaseModel):
 
 
 class UserLogin(BaseModel):
-    # Вход по email ИЛИ по @username.
     login: str = Field(..., min_length=1, max_length=255)
     password: str = Field(..., min_length=1)
 

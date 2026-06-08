@@ -7,9 +7,10 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-events}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-events}
       POSTGRES_DB: ${POSTGRES_DB:-events}
-    # Порт наружу публикуется только в dev. На сервере оставьте закрытым.
+    # Публикуем только на loopback: БД недоступна из интернета (безопасно для хостинга),
+    # но доступна локально на 127.0.0.1:5432 для разработки и инструментов.
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -34,7 +35,8 @@ services:
     container_name: eventshandler-backend
     restart: unless-stopped
     env_file:
-      - ./backend/.env
+      - path: ./backend/.env
+        required: false
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-events}:${POSTGRES_PASSWORD:-events}@db:5432/${POSTGRES_DB:-events}
       REDIS_URL: redis://redis:6379/0
@@ -43,15 +45,16 @@ services:
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
     expose:
       - "8000"
+    # На loopback: наружу API ходит через фронтенд-прокси (/api). Прямой доступ — только локально.
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
+      - "127.0.0.1:${BACKEND_PORT:-8002}:8002"
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0) if urllib.request.urlopen('http://localhost:8000/').status==200 else sys.exit(1)"]
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0) if urllib.request.urlopen('http://localhost:8002/').status==200 else sys.exit(1)"]
       interval: 15s
       timeout: 5s
       retries: 5

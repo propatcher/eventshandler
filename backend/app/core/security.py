@@ -12,7 +12,6 @@ from app.core.config import (
     SECRET_KEY,
 )
 
-# Количество раундов PBKDF2. Стандартная библиотека — без внешних зависимостей.
 _PBKDF2_ROUNDS = 390_000
 
 
@@ -31,8 +30,6 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, stored: str) -> bool:
     """Проверяет пароль против сохранённого хэша (защита от тайминг-атак)."""
     try:
-        # Формат: "$pbkdf2_sha256$<rounds>$<salt>$<hash>" -> split даёт пустой
-        # первый элемент из-за ведущего "$".
         _, _algo, rounds_str, salt_b64, hash_b64 = stored.split("$")
         rounds = int(rounds_str)
         salt = base64.b64decode(salt_b64)

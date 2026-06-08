@@ -85,8 +85,9 @@ docker compose down -v           # остановить и стереть дан
    cp .env.example .env                 # переменные compose (SECRET_KEY, пароль БД, порты, домен)
    cp backend/.env.example backend/.env # ключ DeepSeek
    ```
-   В `.env` **обязательно** задайте надёжный `SECRET_KEY`, `POSTGRES_PASSWORD`, домен в `CORS_ORIGINS`
-   и `FRONTEND_PORT=80`. В `backend/.env` укажите `DEEPSEEK_API_KEY`.
+   В `.env` **обязательно** задайте надёжный `SECRET_KEY` (например, `openssl rand -hex 32`),
+   `POSTGRES_PASSWORD`, домен в `CORS_ORIGINS` и `FRONTEND_PORT=80`.
+   В `backend/.env` укажите `DEEPSEEK_API_KEY`.
 4. Запустите:
    ```bash
    docker compose up -d --build
@@ -97,21 +98,23 @@ docker compose down -v           # остановить и стереть дан
 **Рекомендации для прод-сервера:**
 - Поставьте перед фронтендом обратный прокси (Nginx/Caddy/Traefik) с HTTPS (Let's Encrypt).
   Фронтенд уже сам проксирует `/api` на бэкенд, поэтому наружу достаточно одного порта 80/443.
-- Не публикуйте порт Postgres наружу — закройте `DB_PORT` файрволом или уберите проброс.
+- Порты Postgres и бэкенда по умолчанию слушают только `127.0.0.1` (наружу недоступны) — публичен лишь фронтенд (`FRONTEND_PORT`).
 - Миграции применяются автоматически; данные — в томе `pgdata` (бэкап: `docker compose exec db pg_dump …`).
 
-## 💻 Локальный запуск без Docker (для разработки)
+## 💻 Локальный запуск для разработки (PostgreSQL в Docker)
 
 **Бэкенд:**
 ```bash
+docker compose up -d db      # поднять PostgreSQL на 127.0.0.1:5432
 cd backend
 python -m venv .venv && .venv\Scripts\activate   # Windows
 pip install -r requirements.txt
-alembic upgrade head        # создать схему БД
+alembic upgrade head        # накатить схему в PostgreSQL
 uvicorn app.main:app --reload --port 8000
 ```
-По умолчанию используется локальная SQLite-база (`events.db`) — Postgres поднимать не обязательно.
-Redis в dev-режиме не требуется: если `REDIS_URL` не задан, кэш просто отключается.
+Приложение по умолчанию подключается к PostgreSQL (`postgresql+asyncpg://events:events@localhost:5432/events`).
+Переопределяется переменной `DATABASE_URL` (в т.ч. на SQLite: `sqlite+aiosqlite:///./events.db`).
+Redis в dev-режиме не обязателен: если `REDIS_URL` не задан, кэш отключается.
 
 **Фронтенд:**
 ```bash

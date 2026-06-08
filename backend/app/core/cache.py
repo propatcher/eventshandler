@@ -8,7 +8,7 @@ from app.core.config import CACHE_TTL_SECONDS, REDIS_URL
 
 try:
     from redis import asyncio as aioredis
-except ImportError:  # pragma: no cover
+except ImportError:
     aioredis = None
 
 _client = None

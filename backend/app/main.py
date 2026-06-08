@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status
@@ -13,7 +14,8 @@ from app.core.config import CORS_ORIGINS
 from app.core.database import async_session_factory
 from app.services.reminders import send_due_reminders
 
-# Как часто проверять наступающие мероприятия (секунды).
+logger = logging.getLogger("app")
+
 _REMINDER_INTERVAL = 3600
 
 
@@ -23,14 +25,13 @@ async def _reminder_loop():
         try:
             async with async_session_factory() as session:
                 await send_due_reminders(session)
-        except Exception:  # noqa: BLE001 — фоновой цикл не должен падать
-            pass
+        except Exception:
+            logger.exception("Сбой в фоновом цикле напоминаний")
         await asyncio.sleep(_REMINDER_INTERVAL)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Схема БД управляется миграциями Alembic (alembic upgrade head).
     task = asyncio.create_task(_reminder_loop())
     yield
     task.cancel()

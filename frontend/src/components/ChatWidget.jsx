@@ -7,7 +7,7 @@ export default function ChatWidget({ open, setOpen }) {
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, sender: 'bot', text: 'Здравствуйте! Я ассистент EventlyAI. Чем помочь?' },
+    { id: 1, sender: 'bot', text: 'Здравствуйте! Я ассистент EventlysAI. Чем помочь?' },
   ]);
   const endRef = useRef(null);
 
@@ -37,9 +37,9 @@ export default function ChatWidget({ open, setOpen }) {
             exit={{ opacity: 0, y: 20, scale: 0.96 }} transition={{ type: 'spring', stiffness: 300, damping: 26 }}
             className="bg-white w-[22rem] sm:w-96 max-w-[calc(100vw-2rem)] h-[30rem] max-h-[calc(100vh-6rem)] rounded-2xl border border-neutral-200 shadow-2xl mb-3 flex flex-col overflow-hidden"
           >
-            <div className="bg-neutral-900 text-white px-4 py-3 flex items-center justify-between">
+            <div className="bg-accent text-white px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="w-2 h-2 rounded-full bg-neutral-500" />
                 <div className="leading-tight"><p className="text-sm font-medium">Поддержка</p><p className="text-[11px] text-neutral-400">ИИ-ассистент онлайн</p></div>
               </div>
               <button onClick={() => setOpen(false)} className="text-neutral-400 hover:text-white transition"><Close /></button>
@@ -48,7 +48,7 @@ export default function ChatWidget({ open, setOpen }) {
               {messages.map((m) => (
                 <motion.div key={m.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
                   className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
-                    m.sender === 'user' ? 'self-end bg-neutral-900 text-white rounded-br-sm'
+                    m.sender === 'user' ? 'self-end bg-accent text-white rounded-br-sm'
                     : m.isError ? 'self-start bg-red-50 text-red-700 border border-red-200 rounded-bl-sm'
                     : 'self-start bg-white text-neutral-800 border border-neutral-200 rounded-bl-sm'}`}>
                   {m.text}
@@ -65,14 +65,14 @@ export default function ChatWidget({ open, setOpen }) {
             </div>
             <form onSubmit={send} className="p-3 bg-white border-t border-neutral-200 flex items-center gap-2">
               <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Сообщение…"
-                className="flex-1 bg-neutral-100 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:ring-1 focus:ring-neutral-300 transition" />
-              <button type="submit" disabled={typing || !input.trim()} className="grid place-items-center w-10 h-10 bg-neutral-900 text-white rounded-lg disabled:opacity-40 hover:bg-neutral-800 transition"><Send /></button>
+                className="flex-1 bg-neutral-100 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/20 transition" />
+              <button type="submit" disabled={typing || !input.trim()} className="btn-accent grid place-items-center w-10 h-10 rounded-lg disabled:opacity-40 transition"><Send /></button>
             </form>
           </motion.div>
         )}
       </AnimatePresence>
       <motion.button whileTap={{ scale: 0.92 }} onClick={() => setOpen(!open)}
-        className="grid place-items-center w-12 h-12 bg-neutral-900 text-white rounded-full shadow-lg hover:bg-neutral-800 transition">
+        className="btn-accent grid place-items-center w-12 h-12 rounded-full transition">
         {open ? <Close /> : <Chat width={22} height={22} />}
       </motion.button>
     </div>

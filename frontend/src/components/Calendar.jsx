@@ -16,7 +16,7 @@ export default function Calendar({ value, onChange }) {
 
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
-  const startOffset = (new Date(year, month, 1).getDay() + 6) % 7; // Пн = 0
+  const startOffset = (new Date(year, month, 1).getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const cells = [];
@@ -49,7 +49,7 @@ export default function Calendar({ value, onChange }) {
             return (
               <button key={fmt(d)} type="button" onClick={() => onChange(fmt(d))}
                 className={`h-9 rounded-lg text-sm transition ${
-                  isSel ? 'bg-neutral-900 text-white font-semibold'
+                  isSel ? 'bg-accent text-white font-semibold'
                   : isToday ? 'bg-neutral-100 text-neutral-900 font-semibold ring-1 ring-neutral-300'
                   : 'text-neutral-700 hover:bg-neutral-100'}`}>
                 {d.getDate()}

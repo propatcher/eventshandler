@@ -24,7 +24,6 @@ class EventParticipant(Base):
     invited_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
-    # 'invited' | 'accepted' | 'declined'
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="invited")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

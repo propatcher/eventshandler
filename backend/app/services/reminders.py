@@ -30,7 +30,6 @@ async def send_due_reminders(session: AsyncSession) -> int:
 
     sent = 0
     for ev in events:
-        # Мероприятие уже закончилось (с учётом времени и длительности) — пропускаем.
         if ev.is_past:
             continue
         recipients = {ev.owner_id}

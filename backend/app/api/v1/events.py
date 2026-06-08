@@ -300,7 +300,6 @@ async def respond_invite(
 
     participant.status = "accepted" if payload.accept else "declined"
 
-    # Помечаем связанные уведомления-приглашения прочитанными.
     notes = await session.execute(
         select(Notification).where(
             Notification.user_id == current_user.id,
@@ -312,7 +311,6 @@ async def respond_invite(
         n.is_read = True
 
     event = await session.get(Event, event_id)
-    # Уведомляем владельца о решении.
     if event is not None:
         verb = "принял(а)" if payload.accept else "отклонил(а)"
         session.add(

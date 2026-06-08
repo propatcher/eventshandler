@@ -6,12 +6,12 @@ export default function Modal({ open, onClose, title, children, width = 'max-w-m
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-[2px]"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/50 backdrop-blur-sm"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           onClick={onClose}
         >
           <motion.div
-            className={`bg-white rounded-2xl w-full ${width} p-6 shadow-2xl max-h-[90vh] overflow-y-auto thin-scroll`}
+            className={`bg-white rounded-2xl w-full ${width} p-6 shadow-soft-lg ring-1 ring-black/5 max-h-[90vh] overflow-y-auto thin-scroll`}
             initial={{ opacity: 0, scale: 0.95, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 8 }}

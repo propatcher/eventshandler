@@ -15,9 +15,7 @@ class Event(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     date: Mapped[date_type] = mapped_column(Date, nullable=False)
-    # Время в формате "HH:MM" (опционально).
     time: Mapped[str | None] = mapped_column(String(5), nullable=True)
-    # Длительность мероприятия в минутах (опционально).
     duration_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(
@@ -27,7 +25,6 @@ class Event(Base):
     owner_id: Mapped[int] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    # Отправлено ли напоминание о наступающем мероприятии.
     reminder_sent: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False
     )

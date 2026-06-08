@@ -1,4 +1,3 @@
-// Пресеты длительности в минутах + ручной ввод.
 const PRESETS = [
   [null, 'Без'],
   [30, '30 мин'],
@@ -7,16 +6,6 @@ const PRESETS = [
   [120, '2 ч'],
   [180, '3 ч'],
 ];
-
-export function formatDuration(min) {
-  const n = Number(min);
-  if (!n || n <= 0) return '';
-  const h = Math.floor(n / 60);
-  const m = n % 60;
-  if (h && m) return `${h} ч ${m} мин`;
-  if (h) return `${h} ч`;
-  return `${m} мин`;
-}
 
 export default function DurationPicker({ value, onChange }) {
   const minutes = value === '' || value == null ? null : Number(value);
@@ -38,7 +27,7 @@ export default function DurationPicker({ value, onChange }) {
               key={label} type="button" onClick={() => onChange(val ?? '')}
               className={`px-3 py-1.5 rounded-md text-[13px] font-medium transition border ${
                 active
-                  ? 'bg-neutral-900 text-white border-neutral-900'
+                  ? 'bg-accent text-white border-transparent shadow-sm'
                   : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300'
               }`}
             >
@@ -52,7 +41,7 @@ export default function DurationPicker({ value, onChange }) {
         <input
           type="number" min="0" max="43200" inputMode="numeric"
           value={minutes ?? ''} onChange={setCustom} placeholder="0"
-          className="w-24 border border-neutral-300 rounded-lg px-2.5 py-1.5 text-sm outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10 transition"
+          className="w-24 border border-neutral-300 rounded-lg px-2.5 py-1.5 text-sm outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/15 transition"
         />
         <span>мин</span>
       </div>

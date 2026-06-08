@@ -30,7 +30,6 @@ async def register(
         )
 
     if payload.username:
-        # Пользователь явно указал @username — проверяем занятость.
         desired = payload.username.lower()
         taken = await session.execute(
             select(User.id).where(func.lower(User.username) == desired)
@@ -44,7 +43,6 @@ async def register(
     else:
         username = await generate_unique_username(session, payload.email)
 
-    # Первый пользователь в системе или адрес из ADMIN_EMAILS → админ.
     total_users = await session.scalar(select(func.count()).select_from(User))
     is_admin = (total_users == 0) or (payload.email.lower() in ADMIN_EMAILS)
 
@@ -56,7 +54,7 @@ async def register(
         role="admin" if is_admin else "user",
     )
     session.add(user)
-    await session.flush()  # получаем user.id
+    await session.flush()
 
     await notify(
         session,

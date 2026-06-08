@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { api, setToken } from '../lib/api';
 import { Logo, Shield } from '../lib/icons';
+import BackgroundDecor from '../components/BackgroundDecor';
+import { inputCls } from '../lib/ui';
 
-const inputCls =
-  'w-full border border-neutral-300 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15 transition';
 const hintCls = 'text-[11px] text-neutral-400 mt-1';
 
 export default function AuthView({ onAuthed }) {
   const [isLogin, setIsLogin] = useState(true);
-  const [loginId, setLoginId] = useState('');   // email или @username (вход)
+  const [loginId, setLoginId] = useState('');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -37,20 +37,19 @@ export default function AuthView({ onAuthed }) {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden bg-gradient-to-b from-white to-neutral-100">
-      <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 rounded-full bg-indigo-300/30 blur-3xl blob" />
-      <div className="pointer-events-none absolute -bottom-40 -right-24 w-[28rem] h-[28rem] rounded-full bg-violet-300/30 blur-3xl blob" style={{ animationDelay: '-8s' }} />
+    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden bg-neutral-50 geo-grid isolate">
+      <BackgroundDecor />
 
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 220, damping: 26 }}
         className="relative w-full max-w-md"
       >
-        <div className="bg-white/80 backdrop-blur-xl border border-white/60 rounded-3xl shadow-soft-lg p-8 sm:p-10">
+        <div className="bg-white border border-neutral-200 rounded-2xl shadow-soft-lg p-8 sm:p-10">
           <div className="flex flex-col items-center text-center mb-8">
             <motion.span
               initial={{ rotate: -8, scale: 0.8 }} animate={{ rotate: 0, scale: 1 }} transition={{ delay: 0.05, type: 'spring', stiffness: 260 }}
-              className="grid place-items-center w-14 h-14 rounded-2xl bg-accent text-white shadow-lg shadow-indigo-500/40 mb-4"
+              className="grid place-items-center w-14 h-14 rounded-2xl bg-accent text-white shadow-sm mb-4"
             >
               <Logo width={26} height={26} />
             </motion.span>
@@ -109,7 +108,7 @@ export default function AuthView({ onAuthed }) {
 
           <div className="mt-6 text-center text-sm text-neutral-500">
             {isLogin ? 'Нет аккаунта? ' : 'Уже есть аккаунт? '}
-            <button onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-indigo-600 font-semibold underline underline-offset-4 hover:no-underline">
+            <button onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-neutral-900 font-semibold underline underline-offset-4 hover:no-underline">
               {isLogin ? 'Зарегистрироваться' : 'Войти'}
             </button>
           </div>
@@ -119,7 +118,7 @@ export default function AuthView({ onAuthed }) {
           </div>
         </div>
 
-        <p className="text-center text-xs text-neutral-400 mt-6 tracking-wide">EVENTLY · ПЛАТФОРМА УПРАВЛЕНИЯ МЕРОПРИЯТИЯМИ</p>
+        <p className="text-center text-xs text-neutral-400 mt-6 tracking-wide">EVENTLYS · ПЛАТФОРМА УПРАВЛЕНИЯ МЕРОПРИЯТИЯМИ</p>
       </motion.div>
     </div>
   );

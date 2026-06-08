@@ -25,6 +25,7 @@ export default function EventChatModal({ event, currentUser, onClose, addToast }
 
   useEffect(() => {
     if (!eventId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load(false);
     const t = setInterval(() => load(true), 4000);
     return () => clearInterval(t);
@@ -79,7 +80,7 @@ export default function EventChatModal({ event, currentUser, onClose, addToast }
                     {!own && <Avatar user={m.author} size={28} />}
                     <div>
                       {!own && <p className="text-[11px] text-neutral-400 mb-0.5 ml-1">{m.author.full_name || `@${m.author.username}`}</p>}
-                      <div className={`px-3.5 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words ${own ? 'bg-neutral-900 text-white rounded-br-sm' : 'bg-white border border-neutral-200 text-neutral-800 rounded-bl-sm'}`}>{m.text}</div>
+                      <div className={`px-3.5 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words ${own ? 'bg-accent text-white rounded-br-sm shadow-sm' : 'bg-white border border-neutral-200 text-neutral-800 rounded-bl-sm'}`}>{m.text}</div>
                       <p className={`text-[10px] text-neutral-400 mt-0.5 ${own ? 'text-right mr-1' : 'ml-1'}`}>{timeShort(m.created_at)}</p>
                     </div>
                   </div>
@@ -90,8 +91,8 @@ export default function EventChatModal({ event, currentUser, onClose, addToast }
 
             <form onSubmit={send} className="p-3 border-t border-neutral-200 flex items-center gap-2">
               <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Сообщение участникам…"
-                className="flex-1 bg-neutral-100 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:ring-1 focus:ring-neutral-300 transition" />
-              <button type="submit" disabled={sending || !input.trim()} className="grid place-items-center w-10 h-10 bg-neutral-900 text-white rounded-lg disabled:opacity-40 hover:bg-neutral-800 transition"><Send /></button>
+                className="flex-1 bg-neutral-100 rounded-lg px-3.5 py-2.5 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-neutral-900/20 transition" />
+              <button type="submit" disabled={sending || !input.trim()} className="btn-accent grid place-items-center w-10 h-10 rounded-lg disabled:opacity-40 transition"><Send /></button>
             </form>
           </motion.div>
         </motion.div>

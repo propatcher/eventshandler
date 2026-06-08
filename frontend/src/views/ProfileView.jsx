@@ -3,11 +3,8 @@ import { motion } from 'framer-motion';
 import { api } from '../lib/api';
 import { Shield, Mail, Check, Trash, Camera, Lock } from '../lib/icons';
 import Avatar from '../components/Avatar';
+import { inputCls } from '../lib/ui';
 
-const inputCls =
-  'w-full border border-neutral-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-neutral-900 focus:ring-2 focus:ring-neutral-900/10 transition';
-
-// Уменьшаем и центрируем изображение в квадрат size×size → data-URL (JPEG).
 function resizeImage(file, size = 256) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -35,10 +32,10 @@ function Section({ icon: Icon, title, desc, children }) {
     <motion.section
       initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 240, damping: 26 }}
-      className="bg-white border border-neutral-200 rounded-2xl p-6 sm:p-7 shadow-sm"
+      className="bg-white border border-neutral-200 rounded-2xl p-6 sm:p-7 shadow-soft"
     >
       <div className="flex items-start gap-3 mb-5">
-        <span className="grid place-items-center w-9 h-9 rounded-xl bg-neutral-100 text-neutral-600 shrink-0"><Icon width={17} height={17} /></span>
+        <span className="grid place-items-center w-9 h-9 rounded-xl bg-neutral-100 text-neutral-900 shrink-0"><Icon width={17} height={17} /></span>
         <div>
           <h2 className="font-semibold text-neutral-900">{title}</h2>
           {desc && <p className="text-sm text-neutral-500 mt-0.5">{desc}</p>}
@@ -58,7 +55,7 @@ const Field = ({ label, children }) => (
 
 const SaveBtn = ({ icon: Icon = Check, disabled, loading, children }) => (
   <button type="submit" disabled={disabled}
-    className="inline-flex items-center gap-2 bg-neutral-900 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-neutral-800 disabled:opacity-40 transition">
+    className="btn-accent inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium disabled:opacity-40 transition">
     <Icon width={15} height={15} /> {loading ? 'Сохранение…' : children}
   </button>
 );
@@ -126,7 +123,8 @@ export default function ProfileView({ user, onUpdated, addToast }) {
   const savePassword = async (e) => {
     e.preventDefault();
     if (newPwd !== confirmPwd) return addToast({ type: 'error', text: 'Пароли не совпадают' });
-    if (newPwd.length < 6) return addToast({ type: 'error', text: 'Минимум 6 символов' });
+    if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(newPwd))
+      return addToast({ type: 'error', text: 'Пароль: минимум 8 символов, хотя бы одна буква и одна цифра' });
     setSavingPwd(true);
     try {
       await api.changePassword({ current_password: curPwd, new_password: newPwd });
@@ -144,19 +142,18 @@ export default function ProfileView({ user, onUpdated, addToast }) {
       </div>
 
       <div className="space-y-5">
-        {/* ===== HERO + ПРОФИЛЬ ===== */}
+
         <motion.section
           initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 240, damping: 26 }}
-          className="bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-sm"
+          className="bg-white border border-neutral-200 rounded-2xl overflow-hidden shadow-soft"
         >
           <form onSubmit={saveProfile}>
-            {/* баннер */}
-            <div className="h-28 bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-700 relative">
-              <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 30%, white 0, transparent 40%)' }} />
+
+            <div className="h-28 bg-neutral-900 relative">
+              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.35) 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
             </div>
 
-            {/* аватар + идентификация (по центру) */}
             <div className="px-6 pb-6 -mt-14 flex flex-col items-center text-center">
               <div className="relative">
                 <button type="button" onClick={() => fileRef.current?.click()} title="Сменить фото"
@@ -167,7 +164,7 @@ export default function ProfileView({ user, onUpdated, addToast }) {
                   </span>
                 </button>
                 <button type="button" onClick={() => fileRef.current?.click()} title="Сменить фото"
-                  className="absolute bottom-1 right-1 grid place-items-center w-8 h-8 rounded-full bg-neutral-900 text-white ring-2 ring-white shadow">
+                  className="absolute bottom-1 right-1 grid place-items-center w-8 h-8 rounded-full bg-accent text-white ring-2 ring-white shadow-sm">
                   <Camera width={14} height={14} />
                 </button>
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
@@ -176,7 +173,7 @@ export default function ProfileView({ user, onUpdated, addToast }) {
               <div className="mt-3 flex items-center gap-2">
                 <h2 className="text-xl font-bold tracking-tight">{fullName || `@${username}`}</h2>
                 {user.role === 'admin' && (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-neutral-700 bg-neutral-100 border border-neutral-300 px-2 py-0.5 rounded-full">
                     <Shield width={12} height={12} /> Админ
                   </span>
                 )}
@@ -191,7 +188,6 @@ export default function ProfileView({ user, onUpdated, addToast }) {
               )}
             </div>
 
-            {/* поля профиля */}
             <div className="border-t border-neutral-100 px-6 sm:px-7 py-6 space-y-4">
               <Field label="Отображаемое имя">
                 <input className={inputCls} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Ваше имя" />
@@ -209,7 +205,6 @@ export default function ProfileView({ user, onUpdated, addToast }) {
           </form>
         </motion.section>
 
-        {/* ===== EMAIL ===== */}
         <Section icon={Mail} title="Email" desc={`Текущий: ${user.email}`}>
           <form onSubmit={saveEmail} className="space-y-4">
             <Field label="Новый email">
@@ -224,7 +219,6 @@ export default function ProfileView({ user, onUpdated, addToast }) {
           </form>
         </Section>
 
-        {/* ===== ПАРОЛЬ ===== */}
         <Section icon={Lock} title="Пароль" desc="Смена пароля. Потребуется текущий пароль.">
           <form onSubmit={savePassword} className="space-y-4">
             <Field label="Текущий пароль">
@@ -232,7 +226,8 @@ export default function ProfileView({ user, onUpdated, addToast }) {
             </Field>
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Новый пароль">
-                <input type="password" required className={inputCls} value={newPwd} onChange={(e) => setNewPwd(e.target.value)} placeholder="мин. 6 символов" />
+                <input type="password" required className={inputCls} value={newPwd} onChange={(e) => setNewPwd(e.target.value)} placeholder="мин. 8 символов" />
+                <p className="text-[11px] text-neutral-400 mt-1.5">Минимум 8 символов, хотя бы одна буква и одна цифра.</p>
               </Field>
               <Field label="Повторите">
                 <input type="password" required className={inputCls} value={confirmPwd} onChange={(e) => setConfirmPwd(e.target.value)} />
