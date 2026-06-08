@@ -1,0 +1,22 @@
+# Caddy сам получает и автоматически продлевает сертификат Let's Encrypt.
+# (необязательно) чтобы получать письма об истечении сертификата —
+# раскомментируйте блок ниже и впишите свою почту:
+# {
+# 	email you@example.com
+# }
+
+eventlys.ru, www.eventlys.ru {
+	encode zstd gzip
+
+	# API → бэкенд (uvicorn слушает порт 8000 внутри docker-сети)
+	handle /api/* {
+		reverse_proxy backend:8000
+	}
+
+	# SPA: статика, любой неизвестный путь отдаём index.html
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}
