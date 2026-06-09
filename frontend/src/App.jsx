@@ -153,7 +153,7 @@ export default function App() {
         className={`no-zoom relative flex items-center gap-3 rounded-lg transition-colors px-3 py-2.5 text-sm w-full ${active ? 'text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}>
         {active && (
           <motion.span layoutId="nav-active" className="absolute inset-0 bg-accent"
-            transition={{ type: 'spring', stiffness: 420, damping: 34 }} />
+            transition={{ type: 'tween', duration: 0.18, ease: 'easeOut' }} />
         )}
         <span className="relative z-10 flex items-center gap-3">
           <Badge item={item} size={18} />

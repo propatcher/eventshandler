@@ -1,3 +1,5 @@
+import re
+
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -49,7 +51,22 @@ SYSTEM_PROMPT = """Ты — официальный ИИ-ассистент Event
   «Извините, я помогаю только с платформой Eventlys. Подскажу, как создать мероприятие,
   пригласить участника или настроить профиль — что вас интересует?»
 - Не выдумывай функции, которых нет в списке выше.
+- НЕ используй эмодзи и смайлики — только обычный текст.
 - Отвечай кратко, дружелюбно, по-русски, по шагам, когда это уместно."""
+
+_EMOJI_RE = re.compile(
+    "["
+    "\U0001f000-\U0001faff"
+    "☀-➿"
+    "⬀-⯿"
+    "️"
+    "‍"
+    "]+"
+)
+
+
+def _strip_emoji(text: str) -> str:
+    return _EMOJI_RE.sub("", text).strip()
 
 
 @router.post("", response_model=ChatResponse)
@@ -106,4 +123,4 @@ async def chat(
             detail="Некорректный ответ от EventlysAI.",
         )
 
-    return ChatResponse(reply=reply)
+    return ChatResponse(reply=_strip_emoji(reply))

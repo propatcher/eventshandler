@@ -72,7 +72,7 @@ export default function EventChatModal({ event, currentUser, onClose, addToast }
               {loading ? (
                 <div className="text-center text-neutral-400 text-sm py-8">Загрузка…</div>
               ) : messages.length === 0 ? (
-                <div className="text-center text-neutral-400 text-sm py-8">Сообщений пока нет. Начните беседу 👋</div>
+                <div className="text-center text-neutral-400 text-sm py-8">Сообщений пока нет. Начните беседу.</div>
               ) : messages.map((m) => {
                 const own = m.author.id === currentUser?.id;
                 return (
