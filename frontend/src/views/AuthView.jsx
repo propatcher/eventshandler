@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { api, setToken } from '../lib/api';
-import { Logo, Shield } from '../lib/icons';
+import { Logo, Shield, Calendar, Users, Bell } from '../lib/icons';
 import BackgroundDecor from '../components/BackgroundDecor';
 import { inputCls } from '../lib/ui';
 
@@ -43,9 +43,45 @@ export default function AuthView({ onAuthed }) {
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 220, damping: 26 }}
-        className="relative w-full max-w-md"
+        className="relative w-full max-w-md lg:max-w-4xl"
       >
-        <div className="bg-white border border-neutral-200 rounded-2xl shadow-soft-lg p-8 sm:p-10">
+        <div className="lg:grid lg:grid-cols-[1.05fr_1fr] border border-neutral-200 rounded-2xl shadow-soft-lg overflow-hidden bg-white">
+          <div className="hidden lg:flex relative flex-col justify-between bg-neutral-950 text-white p-10 overflow-hidden">
+            <div aria-hidden="true" className="absolute inset-0 opacity-[0.16]"
+              style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+            <span aria-hidden="true" className="absolute -right-12 -top-12 w-44 h-44 border border-white/15 rotate-12" />
+            <span aria-hidden="true" className="absolute right-16 top-24 w-16 h-16 border border-white/10 -rotate-6" />
+            <span aria-hidden="true" className="absolute -left-10 bottom-24 w-36 h-36 border border-white/10 rotate-6" />
+            <span aria-hidden="true" className="absolute left-24 bottom-10 w-3 h-3 bg-white/20" />
+
+            <div className="relative z-10 flex items-center gap-3">
+              <span className="grid place-items-center w-10 h-10 bg-white text-neutral-900"><Logo width={20} height={20} /></span>
+              <span className="font-bold tracking-tight text-lg">Eventlys</span>
+            </div>
+
+            <div className="relative z-10">
+              <h2 className="text-3xl font-extrabold tracking-tight leading-tight">
+                Мероприятия.<br />Люди. Одно<br />пространство.
+              </h2>
+              <p className="text-neutral-400 text-sm leading-relaxed mt-4 max-w-xs">
+                Создавайте события, приглашайте участников и обсуждайте детали в чате — без лишнего.
+              </p>
+              <div className="mt-8 space-y-3.5">
+                {[[Calendar, 'Дата, время и длительность — прошедшее уходит в архив само'],
+                  [Users, 'Приглашения с подтверждением участия'],
+                  [Bell, 'Уведомления и чат внутри каждого события']].map(([Ico, text]) => (
+                  <div key={text} className="flex items-center gap-3">
+                    <span className="grid place-items-center w-8 h-8 border border-white/20 shrink-0"><Ico width={15} height={15} /></span>
+                    <span className="text-sm text-neutral-300">{text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <p className="relative z-10 text-[11px] tracking-[0.2em] text-neutral-500">EVENTLYS · 2026</p>
+          </div>
+
+          <div className="bg-white p-8 sm:p-10">
           <div className="flex flex-col items-center text-center mb-8">
             <motion.span
               initial={{ rotate: -8, scale: 0.8 }} animate={{ rotate: 0, scale: 1 }} transition={{ delay: 0.05, type: 'spring', stiffness: 260 }}
@@ -115,6 +151,7 @@ export default function AuthView({ onAuthed }) {
 
           <div className="mt-8 pt-5 border-t border-neutral-100 flex items-center justify-center gap-2 text-xs text-neutral-400">
             <Shield width={13} height={13} /> Защищённый вход · данные шифруются
+          </div>
           </div>
         </div>
 

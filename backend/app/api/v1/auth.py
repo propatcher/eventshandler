@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import time
+from collections import deque
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +15,34 @@ from app.services.handles import generate_unique_username
 from app.services.notifications import notify
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+_LOGIN_ATTEMPTS: dict[str, deque[float]] = {}
+_LOGIN_LIMIT = 10
+_LOGIN_WINDOW = 60.0
+
+
+def _client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _check_login_rate(ip: str) -> None:
+    """Простая защита от перебора пароля: не более 10 попыток в минуту с одного IP."""
+    now = time.monotonic()
+    attempts = _LOGIN_ATTEMPTS.setdefault(ip, deque())
+    while attempts and now - attempts[0] > _LOGIN_WINDOW:
+        attempts.popleft()
+    if len(attempts) >= _LOGIN_LIMIT:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Слишком много попыток входа. Подождите минуту и попробуйте снова",
+        )
+    attempts.append(now)
+    if len(_LOGIN_ATTEMPTS) > 2048:
+        for key in [k for k, v in _LOGIN_ATTEMPTS.items() if not v]:
+            del _LOGIN_ATTEMPTS[key]
 
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
@@ -75,9 +106,11 @@ async def register(
 @router.post("/login", response_model=Token)
 async def login(
     payload: UserLogin,
+    request: Request,
     session: AsyncSession = Depends(get_session),
 ) -> Token:
     """Аутентификация по email ИЛИ @username и паролю."""
+    _check_login_rate(_client_ip(request))
     ident = payload.login.strip().lstrip("@")
     result = await session.execute(
         select(User).where(

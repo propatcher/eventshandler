@@ -100,6 +100,12 @@ export default function DashboardView({ addToast, user }) {
     return () => clearInterval(t);
   }, []);
 
+  useEffect(() => {
+    const onNew = () => { setEditing(null); setForm(EMPTY); setFormOpen(true); };
+    window.addEventListener('eventlys:new-event', onNew);
+    return () => window.removeEventListener('eventlys:new-event', onNew);
+  }, []);
+
   const setF = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
   const openCreate = () => { setEditing(null); setForm(EMPTY); setFormOpen(true); };
@@ -186,6 +192,19 @@ export default function DashboardView({ addToast, user }) {
 
   const owned = events.filter((e) => e.is_owner).length;
 
+  const stats = useMemo(() => {
+    const passed = events.filter((e) => e.status === 'Завершено' || isPast(e)).length;
+    const ongoing = events.filter((e) => e.status !== 'Завершено' && isOngoing(e)).length;
+    return [
+      ['Всего', events.length],
+      ['Предстоящие', Math.max(events.length - passed - ongoing, 0)],
+      ['Идут сейчас', ongoing],
+      ['Прошедшие', passed],
+    ];
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [events, tick]);
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
@@ -199,6 +218,17 @@ export default function DashboardView({ addToast, user }) {
           <Plus /> Новое мероприятие
         </button>
       </div>
+
+      {!loading && events.length > 0 && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          {stats.map(([label, value]) => (
+            <div key={label} className="bg-white border border-neutral-200 px-4 py-3">
+              <p className="text-[11px] font-semibold tracking-widest text-neutral-400 uppercase">{label}</p>
+              <p className="text-2xl font-bold tabular-nums mt-0.5">{value}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {events.length > 0 && (
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -237,10 +267,17 @@ export default function DashboardView({ addToast, user }) {
           ))}
         </div>
       ) : events.length === 0 ? (
-        <div className="border border-dashed border-neutral-300 rounded-xl bg-white py-20 px-6 text-center">
-          <span className="grid place-items-center w-12 h-12 rounded-2xl bg-neutral-100 text-neutral-900 mx-auto mb-4"><CalendarIcon width={22} height={22} /></span>
-          <p className="font-medium text-neutral-700">Список пуст</p>
+        <div className="relative border border-dashed border-neutral-300 rounded-xl bg-white py-20 px-6 text-center overflow-hidden">
+          <span aria-hidden="true" className="absolute top-4 left-4 w-5 h-5 border-t-2 border-l-2 border-neutral-200" />
+          <span aria-hidden="true" className="absolute top-4 right-4 w-5 h-5 border-t-2 border-r-2 border-neutral-200" />
+          <span aria-hidden="true" className="absolute bottom-4 left-4 w-5 h-5 border-b-2 border-l-2 border-neutral-200" />
+          <span aria-hidden="true" className="absolute bottom-4 right-4 w-5 h-5 border-b-2 border-r-2 border-neutral-200" />
+          <span className="grid place-items-center w-12 h-12 border-2 border-neutral-900 bg-white text-neutral-900 mx-auto mb-4 [box-shadow:4px_4px_0_#0a0a0a]"><CalendarIcon width={22} height={22} /></span>
+          <p className="font-semibold text-neutral-800">Здесь пока пусто</p>
           <p className="text-neutral-400 text-sm mt-1">Создайте первое мероприятие или дождитесь приглашения.</p>
+          <button onClick={openCreate} className="btn-accent inline-flex items-center gap-2 px-4 py-2.5 mt-5 rounded-xl text-sm font-medium">
+            <Plus /> Создать мероприятие
+          </button>
         </div>
       ) : visible.length === 0 ? (
         <div className="text-center py-16 text-neutral-400 text-sm">Ничего не найдено.</div>
@@ -256,9 +293,9 @@ export default function DashboardView({ addToast, user }) {
                 <motion.article
                   key={event.id} layout
                   initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-                  whileHover={{ y: -4 }}
+                  whileHover={{ x: -3, y: -3 }}
                   transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-                  className={`group bg-white border rounded-2xl p-5 shadow-soft hover:shadow-soft-lg transition-shadow flex flex-col ${past ? 'border-neutral-200 opacity-80' : 'border-neutral-200 hover:border-neutral-300'}`}
+                  className={`group bg-white border rounded-2xl p-5 shadow-soft transition-[box-shadow,border-color] duration-200 flex flex-col ${past ? 'border-neutral-200 opacity-80 hover:border-neutral-400 hover:[box-shadow:6px_6px_0_#a3a3a3]' : 'border-neutral-200 hover:border-neutral-900 hover:[box-shadow:7px_7px_0_#0a0a0a]'}`}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <StatusBadge ev={event} />

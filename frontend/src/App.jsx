@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { api, getToken, setToken } from './lib/api';
-import { Logo, Grid, Bell, User as UserIcon, Shield, Logout } from './lib/icons';
+import { Logo, Grid, Bell, User as UserIcon, Shield, Logout, Search, Plus, Chat } from './lib/icons';
 import Avatar from './components/Avatar';
 import Toasts from './components/Toasts';
 import ChatWidget from './components/ChatWidget';
+import CommandPalette from './components/CommandPalette';
 import BackgroundDecor from './components/BackgroundDecor';
 import AuthView from './views/AuthView';
 import DashboardView from './views/DashboardView';
@@ -19,6 +20,7 @@ export default function App() {
   const [unread, setUnread] = useState(0);
   const [toasts, setToasts] = useState([]);
   const [chatOpen, setChatOpen] = useState(false);
+  const [cmdOpen, setCmdOpen] = useState(false);
 
   const addToast = useCallback((t) => {
     const id = Date.now() + Math.random();
@@ -75,6 +77,17 @@ export default function App() {
     return () => { clearTimeout(timer); evs.forEach((e) => window.removeEventListener(e, arm)); };
   }, [user]);
 
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && ['k', 'K', 'л', 'Л'].includes(e.key)) {
+        e.preventDefault();
+        setCmdOpen((o) => !o);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   // Нижнее меню «прилипает» к нижней грани видимой области при зуме на телефоне
   useEffect(() => {
     const vv = window.visualViewport;
@@ -112,6 +125,16 @@ export default function App() {
 
   const go = (key) => { setView(key); if (key === 'notifications') setTimeout(refreshUnread, 400); };
 
+  const cmdActions = [
+    ...nav.map((n) => ({ id: n.key, label: n.label, hint: 'Раздел', icon: n.icon, run: () => go(n.key) })),
+    {
+      id: 'new-event', label: 'Новое мероприятие', hint: 'Действие', icon: Plus,
+      run: () => { go('dashboard'); setTimeout(() => window.dispatchEvent(new Event('eventlys:new-event')), 80); },
+    },
+    { id: 'assistant', label: 'Открыть ассистента', hint: 'Действие', icon: Chat, run: () => setChatOpen(true) },
+    { id: 'logout', label: 'Выйти из аккаунта', hint: 'Аккаунт', icon: Logout, run: logout },
+  ];
+
   const Badge = ({ item, size }) => (
     <span className="relative">
       <item.icon width={size} height={size} />
@@ -127,9 +150,15 @@ export default function App() {
     const active = view === item.key;
     return (
       <button onClick={() => go(item.key)}
-        className={`relative flex items-center gap-3 rounded-lg transition px-3 py-2.5 text-sm w-full ${active ? 'bg-accent text-white shadow-sm' : 'text-neutral-600 hover:bg-neutral-100'}`}>
-        <Badge item={item} size={18} />
-        <span className="font-medium">{item.label}</span>
+        className={`no-zoom relative flex items-center gap-3 rounded-lg transition-colors px-3 py-2.5 text-sm w-full ${active ? 'text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}>
+        {active && (
+          <motion.span layoutId="nav-active" className="absolute inset-0 bg-accent"
+            transition={{ type: 'spring', stiffness: 420, damping: 34 }} />
+        )}
+        <span className="relative z-10 flex items-center gap-3">
+          <Badge item={item} size={18} />
+          <span className="font-medium">{item.label}</span>
+        </span>
       </button>
     );
   };
@@ -155,6 +184,12 @@ export default function App() {
           className="flex items-center gap-2.5 px-2 py-2 mb-4 rounded-lg hover:bg-neutral-100 transition w-full">
           <span className="grid place-items-center w-8 h-8 rounded-lg bg-accent text-white shadow-sm"><Logo width={17} height={17} /></span>
           <span className="font-semibold tracking-tight text-gradient">Eventlys</span>
+        </button>
+        <button onClick={() => setCmdOpen(true)}
+          className="no-zoom flex items-center gap-2 w-full px-3 py-2 mb-3 border border-neutral-200 bg-white/70 text-sm text-neutral-400 hover:border-neutral-400 hover:text-neutral-600 transition-colors">
+          <Search width={14} height={14} />
+          <span className="flex-1 text-left">Команды</span>
+          <span className="flex gap-0.5"><kbd className="kbd">Ctrl</kbd><kbd className="kbd">K</kbd></span>
         </button>
         <nav className="flex flex-col gap-1 flex-1">
           {nav.map((item) => <NavButton key={item.key} item={item} />)}
@@ -203,6 +238,7 @@ export default function App() {
         {nav.map((item) => <TabButton key={item.key} item={item} />)}
       </nav>
 
+      <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} actions={cmdActions} />
       <ChatWidget open={chatOpen} setOpen={setChatOpen} />
       <Toasts toasts={toasts} />
     </div>

@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.v1.router import api_router
@@ -41,11 +42,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Event Management API",
-    description="API для дипломной работы",
-    version="1.0.0",
+    title="Eventlys API",
+    description="Программный интерфейс платформы управления мероприятиями Eventlys",
+    version="1.1.0",
     lifespan=lifespan,
 )
+
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 app.add_middleware(
     CORSMiddleware,
@@ -54,6 +57,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault(
+        "Permissions-Policy", "camera=(), microphone=(), geolocation=()"
+    )
+    return response
 
 app.include_router(api_router)
 
@@ -90,3 +105,8 @@ async def on_validation_error(
 @app.get("/")
 async def root():
     return {"status": "ok", "message": "Сервер успешно запущен"}
+
+
+@app.get("/healthz")
+async def healthz():
+    return {"status": "ok"}

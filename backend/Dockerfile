@@ -15,7 +15,7 @@ COPY app ./app
 COPY alembic.ini ./alembic.ini
 COPY migrations ./migrations
 
-EXPOSE 8002
+EXPOSE 8000
 
 # Перед стартом накатываем миграции Alembic, затем поднимаем сервер.
 CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]

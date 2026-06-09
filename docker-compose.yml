@@ -47,14 +47,14 @@ services:
       - "8000"
     # На loopback: наружу API ходит через фронтенд-прокси (/api). Прямой доступ — только локально.
     ports:
-      - "127.0.0.1:${BACKEND_PORT:-8002}:8002"
+      - "127.0.0.1:${BACKEND_PORT:-8002}:8000"
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0) if urllib.request.urlopen('http://localhost:8002/').status==200 else sys.exit(1)"]
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0) if urllib.request.urlopen('http://localhost:8000/healthz').status==200 else sys.exit(1)"]
       interval: 15s
       timeout: 5s
       retries: 5
