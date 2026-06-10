@@ -139,7 +139,7 @@ export default function App() {
     <span className="relative">
       <item.icon width={size} height={size} />
       {item.badge > 0 && (
-        <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-neutral-900 text-white text-[10px] font-bold grid place-items-center">
+        <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-neutral-900 text-white text-[10px] font-bold grid place-items-center ring-2 ring-white">
           {item.badge > 9 ? '9+' : item.badge}
         </span>
       )}
@@ -150,15 +150,9 @@ export default function App() {
     const active = view === item.key;
     return (
       <button onClick={() => go(item.key)}
-        className={`no-zoom relative flex items-center gap-3 rounded-lg transition-colors px-3 py-2.5 text-sm w-full ${active ? 'text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}>
-        {active && (
-          <motion.span layoutId="nav-active" className="absolute inset-0 bg-accent"
-            transition={{ type: 'tween', duration: 0.18, ease: 'easeOut' }} />
-        )}
-        <span className="relative z-10 flex items-center gap-3">
-          <Badge item={item} size={18} />
-          <span className="font-medium">{item.label}</span>
-        </span>
+        className={`no-zoom flex items-center gap-3 transition-colors duration-150 px-3 py-2.5 text-sm w-full ${active ? 'bg-accent text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}>
+        <Badge item={item} size={18} />
+        <span className="font-medium">{item.label}</span>
       </button>
     );
   };
@@ -167,7 +161,7 @@ export default function App() {
     const active = view === item.key;
     return (
       <button onClick={() => go(item.key)}
-        className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition ${active ? 'text-neutral-900' : 'text-neutral-400'}`}>
+        className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] transition ${active ? 'text-neutral-900 font-semibold' : 'text-neutral-400 font-medium'}`}>
         {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-accent rounded-full" />}
         <Badge item={item} size={22} />
         {item.label}
@@ -183,7 +177,7 @@ export default function App() {
         <button onClick={() => go('dashboard')} title="На главную"
           className="flex items-center gap-2.5 px-2 py-2 mb-4 rounded-lg hover:bg-neutral-100 transition w-full">
           <span className="grid place-items-center w-8 h-8 rounded-lg bg-accent text-white shadow-sm"><Logo width={17} height={17} /></span>
-          <span className="font-semibold tracking-tight text-gradient">Eventlys</span>
+          <span className="font-semibold tracking-tight">Eventlys</span>
         </button>
         <button onClick={() => setCmdOpen(true)}
           className="no-zoom flex items-center gap-2 w-full px-3 py-2 mb-3 border border-neutral-200 bg-white/70 text-sm text-neutral-400 hover:border-neutral-400 hover:text-neutral-600 transition-colors">
@@ -205,6 +199,7 @@ export default function App() {
           <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2 mt-1 rounded-lg text-sm text-neutral-500 hover:text-red-600 hover:bg-red-50 transition">
             <Logout width={16} height={16} /> Выйти
           </button>
+          <p className="px-3 pt-3 text-[9px] font-medium tracking-[0.28em] text-neutral-300 uppercase select-none">Eventlys · 2026</p>
         </div>
       </aside>
 
@@ -212,7 +207,7 @@ export default function App() {
         <div className="flex items-center justify-between px-4 h-14">
           <button onClick={() => go('dashboard')} title="На главную" className="flex items-center gap-2">
             <span className="grid place-items-center w-7 h-7 rounded-lg bg-accent text-white shadow-sm"><Logo width={15} height={15} /></span>
-            <span className="font-semibold tracking-tight text-gradient">Eventlys</span>
+            <span className="font-semibold tracking-tight">Eventlys</span>
           </button>
           <div className="flex items-center gap-1">
             <button onClick={() => go('profile')} className="grid place-items-center"><Avatar user={user} size={30} /></button>

@@ -19,6 +19,12 @@ body {
 * {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* iOS авто-зумит страницу при фокусе в поле со шрифтом < 16px — из-за этого
+   вёрстка «съезжает» на телефонах. На мобильных держим поля ровно 16px. */
+@media (max-width: 767px) {
+  input, select, textarea { font-size: 16px; }
+}
 button, a, [role="button"] {
   -webkit-tap-highlight-color: transparent;
 }
@@ -72,7 +78,6 @@ button:not(:disabled):not([aria-disabled="true"]):active {
 .thin-scroll::-webkit-scrollbar { width: 8px; }
 .thin-scroll::-webkit-scrollbar-thumb {
   background: #d4d4d8;
-  border-radius: 999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
@@ -99,8 +104,6 @@ button:not(:disabled):not([aria-disabled="true"]):active {
 .no-zoom:not(:disabled):hover { scale: 1 !important; }
 .no-zoom:not(:disabled):active { scale: 0.99 !important; }
 
-.text-gradient { color: #0a0a0a; }
-
 .btn-accent {
   background-color: #0a0a0a;
   color: #fff;
@@ -108,8 +111,15 @@ button:not(:disabled):not([aria-disabled="true"]):active {
 }
 .btn-accent:hover:not(:disabled):not([aria-disabled="true"]) {
   background-color: #262626;
+  box-shadow: 3px 3px 0 #c8c8cc;
 }
 .btn-accent:disabled { box-shadow: none; }
+
+/* Единый стиль «всплывающих» поверхностей: чёрная рамка + твёрдая тень */
+.pop-frame {
+  border: 2px solid #0a0a0a;
+  box-shadow: 8px 8px 0 #0a0a0a;
+}
 
 .geo-grid {
   background-image: radial-gradient(rgba(15, 23, 42, 0.07) 1px, transparent 1px);
@@ -132,7 +142,6 @@ button:not(:disabled):not([aria-disabled="true"]):active {
 .skeleton {
   background-color: #ececf0;
   animation: pulse-soft 1.4s ease-in-out infinite;
-  border-radius: 0.5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

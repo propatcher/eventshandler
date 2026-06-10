@@ -36,9 +36,9 @@ function Section({ icon: Icon, title, desc, children }) {
     >
       <div className="flex items-start gap-3 mb-5">
         <span className="grid place-items-center w-9 h-9 rounded-xl bg-neutral-100 text-neutral-900 shrink-0"><Icon width={17} height={17} /></span>
-        <div>
+        <div className="min-w-0">
           <h2 className="font-semibold text-neutral-900">{title}</h2>
-          {desc && <p className="text-sm text-neutral-500 mt-0.5">{desc}</p>}
+          {desc && <p className="text-sm text-neutral-500 mt-0.5 break-words">{desc}</p>}
         </div>
       </div>
       {children}
@@ -137,6 +137,9 @@ export default function ProfileView({ user, onUpdated, addToast }) {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="text-center mb-7">
+        <p className="flex items-center justify-center gap-2 text-[10px] font-semibold tracking-[0.22em] text-neutral-400 uppercase mb-1.5">
+          <span className="w-1.5 h-1.5 bg-accent inline-block" /> Аккаунт
+        </p>
         <h1 className="text-2xl font-bold tracking-tight">Личный кабинет</h1>
         <p className="text-neutral-500 text-sm mt-1">Управляйте профилем, аватаром и доступом к аккаунту</p>
       </div>
@@ -170,16 +173,16 @@ export default function ProfileView({ user, onUpdated, addToast }) {
                 <input ref={fileRef} type="file" accept="image/*" hidden onChange={onFile} />
               </div>
 
-              <div className="mt-3 flex items-center gap-2">
-                <h2 className="text-xl font-bold tracking-tight">{fullName || `@${username}`}</h2>
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2 max-w-full">
+                <h2 className="text-xl font-bold tracking-tight break-words min-w-0 max-w-full">{fullName || `@${username}`}</h2>
                 {user.role === 'admin' && (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-neutral-700 bg-neutral-100 border border-neutral-300 px-2 py-0.5 rounded-full">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-neutral-700 bg-neutral-100 border border-neutral-300 px-2 py-0.5 rounded-full shrink-0">
                     <Shield width={12} height={12} /> Админ
                   </span>
                 )}
               </div>
-              <p className="text-neutral-500 text-sm">@{username}</p>
-              <p className="text-neutral-400 text-sm mt-0.5 inline-flex items-center gap-1.5"><Mail width={13} height={13} /> {user.email}</p>
+              <p className="text-neutral-500 text-sm break-words max-w-full">@{username}</p>
+              <p className="text-neutral-400 text-sm mt-0.5 inline-flex items-center gap-1.5 max-w-full"><Mail width={13} height={13} className="shrink-0" /> <span className="break-all min-w-0">{user.email}</span></p>
 
               {avatar && (
                 <button type="button" onClick={() => setAvatar('')} className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-red-600 hover:underline underline-offset-4">

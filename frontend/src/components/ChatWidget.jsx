@@ -35,7 +35,7 @@ export default function ChatWidget({ open, setOpen }) {
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.96 }} transition={{ type: 'spring', stiffness: 300, damping: 26 }}
-            className="bg-white w-[22rem] sm:w-96 max-w-[calc(100vw-2rem)] h-[30rem] max-h-[calc(100vh-6rem)] rounded-2xl border border-neutral-200 shadow-2xl mb-3 flex flex-col overflow-hidden"
+            className="bg-white w-[22rem] sm:w-96 max-w-[calc(100vw-2rem)] h-[30rem] max-h-[calc(100vh-6rem)] pop-frame mb-3 flex flex-col overflow-hidden"
           >
             <div className="bg-accent text-white px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2.5">

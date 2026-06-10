@@ -11,16 +11,16 @@ export default function Modal({ open, onClose, title, children, width = 'max-w-m
           onClick={onClose}
         >
           <motion.div
-            className={`bg-white rounded-2xl w-full ${width} p-6 shadow-soft-lg ring-1 ring-black/5 max-h-[90vh] overflow-y-auto thin-scroll`}
+            className={`bg-white pop-frame w-full ${width} p-6 max-h-[90vh] overflow-y-auto thin-scroll`}
             initial={{ opacity: 0, scale: 0.95, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 8 }}
             transition={{ type: 'spring', stiffness: 320, damping: 26 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-semibold text-neutral-900">{title}</h3>
-              <button onClick={onClose} className="grid place-items-center w-8 h-8 rounded-md text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition">
+            <div className="flex items-center justify-between gap-3 mb-5">
+              <h3 className="text-lg font-semibold text-neutral-900 min-w-0 break-words">{title}</h3>
+              <button onClick={onClose} className="grid place-items-center w-8 h-8 shrink-0 rounded-md text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition">
                 <Close />
               </button>
             </div>

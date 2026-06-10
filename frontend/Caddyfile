@@ -1,11 +1,12 @@
-# Caddy сам получает и автоматически продлевает сертификат Let's Encrypt.
+# Caddy сам получает и автоматически продлевает сертификат Let's Encrypt
+# для доменного блока ниже. Локально (localhost) работает по HTTP без сертификата.
 # (необязательно) чтобы получать письма об истечении сертификата —
-# раскомментируйте блок ниже и впишите свою почту:
+# раскомментируйте блок и впишите свою почту:
 # {
 # 	email you@example.com
 # }
 
-eventlys.ru, www.eventlys.ru {
+(app) {
 	encode zstd gzip
 
 	header {
@@ -25,4 +26,12 @@ eventlys.ru, www.eventlys.ru {
 		try_files {path} /index.html
 		file_server
 	}
+}
+
+eventlys.ru, www.eventlys.ru {
+	import app
+}
+
+http://localhost, http://127.0.0.1 {
+	import app
 }

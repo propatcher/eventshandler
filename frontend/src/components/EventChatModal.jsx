@@ -55,7 +55,7 @@ export default function EventChatModal({ event, currentUser, onClose, addToast }
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}
         >
           <motion.div
-            className="bg-white rounded-2xl w-full max-w-md h-[34rem] max-h-[90vh] shadow-2xl flex flex-col overflow-hidden"
+            className="bg-white pop-frame w-full max-w-md h-[34rem] max-h-[90vh] flex flex-col overflow-hidden"
             initial={{ opacity: 0, scale: 0.95, y: 12 }} animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: 8 }} transition={{ type: 'spring', stiffness: 320, damping: 26 }}
             onClick={(e) => e.stopPropagation()}

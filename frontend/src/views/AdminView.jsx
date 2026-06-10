@@ -40,6 +40,9 @@ export default function AdminView({ addToast }) {
 
   return (
     <div>
+      <p className="flex items-center gap-2 text-[10px] font-semibold tracking-[0.22em] text-neutral-400 uppercase mb-1.5">
+        <span className="w-1.5 h-1.5 bg-accent inline-block" /> Служебный раздел
+      </p>
       <div className="flex items-center gap-2 mb-1">
         <h1 className="text-2xl font-bold tracking-tight">Администрирование</h1>
         <span className="inline-flex items-center gap-1 text-xs font-semibold text-neutral-700 bg-neutral-100 border border-neutral-300 px-2 py-0.5 rounded-full">

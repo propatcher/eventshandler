@@ -209,6 +209,9 @@ export default function DashboardView({ addToast, user }) {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
         <div>
+          <p className="flex items-center gap-2 text-[10px] font-semibold tracking-[0.22em] text-neutral-400 uppercase mb-1.5">
+            <span className="w-1.5 h-1.5 bg-accent inline-block" /> Панель управления
+          </p>
           <h1 className="text-2xl font-bold tracking-tight">Мероприятия</h1>
           <p className="text-neutral-500 text-sm mt-1">
             {events.length === 0 ? 'Пока ничего не создано' : `${owned} ваших · ${events.length - owned} совместных`}
@@ -222,8 +225,8 @@ export default function DashboardView({ addToast, user }) {
       {!loading && events.length > 0 && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
           {stats.map(([label, value]) => (
-            <div key={label} className="bg-white border border-neutral-200 px-4 py-3">
-              <p className="text-[11px] font-semibold tracking-widest text-neutral-400 uppercase">{label}</p>
+            <div key={label} className="bg-white border border-neutral-200 border-t-2 border-t-neutral-900 px-4 py-3">
+              <p className="text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">{label}</p>
               <p className="text-2xl font-bold tabular-nums mt-0.5">{value}</p>
             </div>
           ))}
@@ -311,7 +314,7 @@ export default function DashboardView({ addToast, user }) {
                       <span className="text-[11px] font-medium text-neutral-900 bg-neutral-100 px-2 py-0.5 rounded-full">участник</span>
                     )}
                   </div>
-                  <h3 className="font-semibold text-[15px] leading-snug mb-1.5">{event.title}</h3>
+                  <h3 className="font-semibold text-[15px] leading-snug mb-1.5 break-words">{event.title}</h3>
                   <p className="text-neutral-500 text-sm leading-relaxed line-clamp-2 min-h-[2.5rem]">{event.description || 'Без описания'}</p>
 
                   <div className="mt-3 space-y-1.5 text-sm text-neutral-500">
@@ -341,7 +344,7 @@ export default function DashboardView({ addToast, user }) {
                     </div>
                   </div>
                   {!event.is_owner && event.owner_username && (
-                    <p className="mt-2 text-xs text-neutral-400">владелец: @{event.owner_username}</p>
+                    <p className="mt-2 text-xs text-neutral-400 truncate">владелец: @{event.owner_username}</p>
                   )}
                 </motion.article>
               );

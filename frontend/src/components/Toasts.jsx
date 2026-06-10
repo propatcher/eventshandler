@@ -21,14 +21,14 @@ export default function Toasts({ toasts }) {
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 40, scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-              className={`flex items-start gap-3 rounded-2xl px-4 py-3 shadow-soft-lg border bg-white/95 backdrop-blur-xl ${s.wrap}`}
+              className={`flex items-start gap-3 px-4 py-3 [box-shadow:5px_5px_0_rgba(10,10,10,0.9)] border bg-white/95 backdrop-blur-xl ${s.wrap}`}
             >
               <span className={`grid place-items-center w-7 h-7 rounded-full shrink-0 ${s.ico}`}>
                 <s.Icon width={15} height={15} />
               </span>
               <div className="min-w-0 flex-1 text-sm">
-                {t.title && <p className="font-semibold text-neutral-900 mb-0.5">{t.title}</p>}
-                <p className="text-neutral-600 leading-snug">{t.text}</p>
+                {t.title && <p className="font-semibold text-neutral-900 mb-0.5 break-words">{t.title}</p>}
+                <p className="text-neutral-600 leading-snug break-words">{t.text}</p>
               </div>
             </motion.div>
           );

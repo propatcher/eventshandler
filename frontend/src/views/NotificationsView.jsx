@@ -82,6 +82,9 @@ export default function NotificationsView({ addToast, onChanged }) {
     <div>
       <div className="flex items-center justify-between mb-7">
         <div>
+          <p className="flex items-center gap-2 text-[10px] font-semibold tracking-[0.22em] text-neutral-400 uppercase mb-1.5">
+            <span className="w-1.5 h-1.5 bg-accent inline-block" /> Входящие
+          </p>
           <h1 className="text-2xl font-bold tracking-tight">Уведомления</h1>
           <p className="text-neutral-500 text-sm mt-1">{unread > 0 ? `${unread} непрочитанных` : 'Всё прочитано'}</p>
         </div>
@@ -151,7 +154,7 @@ export default function NotificationsView({ addToast, onChanged }) {
             onClick={() => setSelected(null)}
           >
             <motion.div
-              className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
+              className="bg-white pop-frame w-full max-w-md overflow-hidden"
               initial={{ opacity: 0, scale: 0.94, y: 14 }} animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: 8 }} transition={{ type: 'spring', stiffness: 320, damping: 26 }}
               onClick={(e) => e.stopPropagation()}
@@ -180,8 +183,8 @@ function DetailWidget({ n, replyText, setReplyText, sending, onClose, onRespond,
         <span className={`grid place-items-center w-11 h-11 rounded-xl shrink-0 ${TINTS[n.type] || TINTS.system}`}><Ico width={20} height={20} /></span>
         <div className="min-w-0 flex-1">
           <span className="text-[11px] font-medium text-neutral-400 uppercase tracking-wide">{TYPE_LABEL[n.type] || 'Уведомление'}</span>
-          <h3 className="text-base font-semibold text-neutral-900 leading-snug">{n.title}</h3>
-          <p className="text-xs text-neutral-400 mt-0.5">
+          <h3 className="text-base font-semibold text-neutral-900 leading-snug break-words">{n.title}</h3>
+          <p className="text-xs text-neutral-400 mt-0.5 break-words">
             {fmtTime(n.created_at)}{n.actor_username ? ` · от @${n.actor_username}` : ''}
           </p>
         </div>

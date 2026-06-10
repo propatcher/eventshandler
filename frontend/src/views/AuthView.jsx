@@ -45,7 +45,7 @@ export default function AuthView({ onAuthed }) {
         transition={{ type: 'spring', stiffness: 220, damping: 26 }}
         className="relative w-full max-w-md lg:max-w-4xl"
       >
-        <div className="lg:grid lg:grid-cols-[1.05fr_1fr] border border-neutral-200 rounded-2xl shadow-soft-lg overflow-hidden bg-white">
+        <div className="lg:grid lg:grid-cols-[1.05fr_1fr] pop-frame overflow-hidden bg-white">
           <div className="hidden lg:flex relative flex-col justify-between bg-neutral-950 text-white p-10 overflow-hidden">
             <div aria-hidden="true" className="absolute inset-0 opacity-[0.16]"
               style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
@@ -89,7 +89,7 @@ export default function AuthView({ onAuthed }) {
             >
               <Logo width={26} height={26} />
             </motion.span>
-            <h1 className="text-2xl font-bold tracking-tight text-gradient">
+            <h1 className="text-2xl font-bold tracking-tight">
               {isLogin ? 'С возвращением' : 'Создание аккаунта'}
             </h1>
             <p className="text-neutral-500 text-sm mt-1.5">
