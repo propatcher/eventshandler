@@ -1,18 +1,18 @@
 import { useEffect, useRef } from 'react';
 
 const GAP = 24;
-const BASE_R = 1;
-const BASE_A = 0.15;
-const RADIUS = 180;
+const DOT = 2;
+const BASE_A = 0.16;
+const CURSOR_R = 180;
 
 const BLOBS = [
-  { bx: 0.12, r: 0.16, vy: 26, wob: 90, wf: 0.35, ph: 0.0, par: 0.16, a: 0.26 },
-  { bx: 0.30, r: 0.21, vy: 18, wob: 120, wf: 0.24, ph: 1.7, par: 0.26, a: 0.30 },
-  { bx: 0.48, r: 0.13, vy: 38, wob: 70, wf: 0.45, ph: 3.1, par: 0.10, a: 0.24 },
-  { bx: 0.64, r: 0.19, vy: 22, wob: 110, wf: 0.28, ph: 4.4, par: 0.32, a: 0.28 },
-  { bx: 0.80, r: 0.15, vy: 32, wob: 80, wf: 0.38, ph: 0.9, par: 0.14, a: 0.25 },
-  { bx: 0.93, r: 0.12, vy: 42, wob: 60, wf: 0.50, ph: 2.5, par: 0.22, a: 0.22 },
-  { bx: 0.05, r: 0.18, vy: 20, wob: 100, wf: 0.30, ph: 5.2, par: 0.20, a: 0.27 },
+  { bx: 0.12, r: 0.20, vy: 26, wob: 90, wf: 0.35, ph: 0.0, par: 0.16, s: 1.0 },
+  { bx: 0.32, r: 0.26, vy: 18, wob: 120, wf: 0.24, ph: 1.7, par: 0.26, s: 0.9 },
+  { bx: 0.50, r: 0.16, vy: 38, wob: 70, wf: 0.45, ph: 3.1, par: 0.10, s: 0.8 },
+  { bx: 0.66, r: 0.24, vy: 22, wob: 110, wf: 0.28, ph: 4.4, par: 0.32, s: 1.0 },
+  { bx: 0.82, r: 0.18, vy: 32, wob: 80, wf: 0.38, ph: 0.9, par: 0.14, s: 0.85 },
+  { bx: 0.95, r: 0.14, vy: 42, wob: 60, wf: 0.50, ph: 2.5, par: 0.22, s: 0.75 },
+  { bx: 0.04, r: 0.22, vy: 20, wob: 100, wf: 0.30, ph: 5.2, par: 0.20, s: 0.9 },
 ];
 
 export default function BackgroundDecor() {
@@ -26,7 +26,6 @@ export default function BackgroundDecor() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     let w = 0, h = 0, dpr = 1;
-    let base = null;
     let raf = 0;
     let hasPointer = false;
     let intensity = 0;
@@ -35,85 +34,62 @@ export default function BackgroundDecor() {
     const cur = { x: 0, y: 0 };
     const target = { x: 0, y: 0 };
 
-    const buildBase = () => {
-      base = document.createElement('canvas');
-      base.width = Math.max(w * dpr, 1);
-      base.height = Math.max(h * dpr, 1);
-      const b = base.getContext('2d');
-      b.setTransform(dpr, 0, 0, dpr, 0, 0);
-      b.fillStyle = `rgba(10,10,10,${BASE_A})`;
-      for (let x = 0; x <= w + GAP; x += GAP) {
-        for (let y = 0; y <= h + GAP; y += GAP) {
-          b.beginPath();
-          b.arc(x, y, BASE_R, 0, Math.PI * 2);
-          b.fill();
-        }
-      }
-    };
-
-    const drawBlobs = (t) => {
+    const blobPositions = (t) => {
       const m = Math.min(w, h);
-      for (const bl of BLOBS) {
+      return BLOBS.map((bl) => {
         const R = bl.r * m;
         const span = h + 2 * R;
         const y0 = (bl.ph / 6.28) * span;
         const rawY = y0 - t * bl.vy - scrollSmooth * bl.par;
         const y = (((rawY + R) % span) + span) % span - R;
         const x = bl.bx * w + Math.sin(t * bl.wf + bl.ph) * bl.wob;
-        const r = R * (1 + 0.1 * Math.sin(t * 0.5 + bl.ph));
-        const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-        g.addColorStop(0, `rgba(10,10,10,${bl.a})`);
-        g.addColorStop(0.72, `rgba(10,10,10,${bl.a * 0.8})`);
-        g.addColorStop(1, 'rgba(10,10,10,0)');
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
-      }
+        const r = R * (1 + 0.08 * Math.sin(t * 0.5 + bl.ph));
+        return { x, y, r, r2: r * r, s: bl.s };
+      });
     };
 
-    const drawHighlight = () => {
-      if (intensity < 0.01) return;
-      const x0 = Math.max(0, Math.ceil((cur.x - RADIUS) / GAP) * GAP);
-      const y0 = Math.max(0, Math.ceil((cur.y - RADIUS) / GAP) * GAP);
-      const x1 = Math.min(w + GAP, cur.x + RADIUS);
-      const y1 = Math.min(h + GAP, cur.y + RADIUS);
-      for (let x = x0; x <= x1; x += GAP) {
-        for (let y = y0; y <= y1; y += GAP) {
-          const d = Math.hypot(x - cur.x, y - cur.y);
-          if (d >= RADIUS) continue;
-          const k = 1 - d / RADIUS;
-          const e = k * k * (3 - 2 * k) * intensity;
-          ctx.beginPath();
-          ctx.arc(x, y, BASE_R + e * 1.8, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(10,10,10,${BASE_A + e * 0.45})`;
-          ctx.fill();
+    const paint = (t) => {
+      const blobs = blobPositions(t);
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = '#0a0a0a';
+      const cursorOn = intensity > 0.01;
+      for (let gx = 0; gx <= w + GAP; gx += GAP) {
+        for (let gy = 0; gy <= h + GAP; gy += GAP) {
+          let f = 0;
+          for (const b of blobs) {
+            const dx = gx - b.x;
+            if (dx > b.r || dx < -b.r) continue;
+            const dy = gy - b.y;
+            if (dy > b.r || dy < -b.r) continue;
+            const k = 1 - (dx * dx + dy * dy) / b.r2;
+            if (k > 0) f += k * k * b.s;
+          }
+          if (cursorOn) {
+            const d = Math.hypot(gx - cur.x, gy - cur.y);
+            if (d < CURSOR_R) {
+              const k = 1 - d / CURSOR_R;
+              f += k * k * (3 - 2 * k) * intensity;
+            }
+          }
+          const e = f > 1 ? 1 : f;
+          const s = DOT + e * 3.2;
+          ctx.globalAlpha = BASE_A + e * 0.5;
+          ctx.fillRect(gx - s / 2, gy - s / 2, s, s);
         }
       }
-    };
-
-    const paintStatic = () => {
-      ctx.clearRect(0, 0, w, h);
-      drawBlobs(0);
-      ctx.drawImage(base, 0, 0, w, h);
+      ctx.globalAlpha = 1;
     };
 
     let last = performance.now();
     const tick = (now) => {
       const dt = Math.min((now - last) / 16.7, 3);
       last = now;
-      const t = now / 1000;
-
       const follow = Math.min(0.55 * dt, 1);
       scrollSmooth += (window.scrollY - scrollSmooth) * 0.09 * dt;
       cur.x += (target.x - cur.x) * follow;
       cur.y += (target.y - cur.y) * follow;
       intensity += (intensityTarget - intensity) * 0.10 * dt;
-
-      ctx.clearRect(0, 0, w, h);
-      drawBlobs(t);
-      ctx.drawImage(base, 0, 0, w, h);
-      drawHighlight();
+      paint(now / 1000);
       raf = requestAnimationFrame(tick);
     };
 
@@ -148,8 +124,7 @@ export default function BackgroundDecor() {
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      buildBase();
-      paintStatic();
+      paint(performance.now() / 1000);
     };
 
     resize();
