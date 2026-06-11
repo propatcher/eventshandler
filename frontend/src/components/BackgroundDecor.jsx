@@ -6,12 +6,13 @@ const BASE_A = 0.15;
 const RADIUS = 180;
 
 const BLOBS = [
-  { bx: 0.15, by: 0.25, r: 0.38, ax: 150, ay: 100, fx: 0.42, fy: 0.30, ph: 0.0, par: 0.18, a: 0.190 },
-  { bx: 0.85, by: 0.15, r: 0.32, ax: 110, ay: 140, fx: 0.28, fy: 0.40, ph: 2.1, par: 0.30, a: 0.160 },
-  { bx: 0.70, by: 0.78, r: 0.42, ax: 170, ay: 110, fx: 0.23, fy: 0.34, ph: 4.2, par: 0.12, a: 0.200 },
-  { bx: 0.30, by: 0.90, r: 0.30, ax: 130, ay: 150, fx: 0.36, fy: 0.25, ph: 1.3, par: 0.24, a: 0.160 },
-  { bx: 0.52, by: 0.45, r: 0.35, ax: 190, ay: 130, fx: 0.31, fy: 0.21, ph: 5.4, par: 0.36, a: 0.140 },
-  { bx: 0.04, by: 0.62, r: 0.26, ax: 100, ay: 110, fx: 0.39, fy: 0.32, ph: 3.0, par: 0.20, a: 0.160 },
+  { bx: 0.12, r: 0.16, vy: 26, wob: 90, wf: 0.35, ph: 0.0, par: 0.16, a: 0.26 },
+  { bx: 0.30, r: 0.21, vy: 18, wob: 120, wf: 0.24, ph: 1.7, par: 0.26, a: 0.30 },
+  { bx: 0.48, r: 0.13, vy: 38, wob: 70, wf: 0.45, ph: 3.1, par: 0.10, a: 0.24 },
+  { bx: 0.64, r: 0.19, vy: 22, wob: 110, wf: 0.28, ph: 4.4, par: 0.32, a: 0.28 },
+  { bx: 0.80, r: 0.15, vy: 32, wob: 80, wf: 0.38, ph: 0.9, par: 0.14, a: 0.25 },
+  { bx: 0.93, r: 0.12, vy: 42, wob: 60, wf: 0.50, ph: 2.5, par: 0.22, a: 0.22 },
+  { bx: 0.05, r: 0.18, vy: 20, wob: 100, wf: 0.30, ph: 5.2, par: 0.20, a: 0.27 },
 ];
 
 export default function BackgroundDecor() {
@@ -53,14 +54,16 @@ export default function BackgroundDecor() {
     const drawBlobs = (t) => {
       const m = Math.min(w, h);
       for (const bl of BLOBS) {
-        const span = h + 2 * bl.r * m;
-        const rawY = bl.by * h + Math.cos(t * bl.fy + bl.ph * 1.7) * bl.ay - scrollSmooth * bl.par;
-        const y = (((rawY + bl.r * m) % span) + span) % span - bl.r * m;
-        const x = bl.bx * w + Math.sin(t * bl.fx + bl.ph) * bl.ax;
-        const r = bl.r * m * (1 + 0.12 * Math.sin(t * 0.45 + bl.ph));
+        const R = bl.r * m;
+        const span = h + 2 * R;
+        const y0 = (bl.ph / 6.28) * span;
+        const rawY = y0 - t * bl.vy - scrollSmooth * bl.par;
+        const y = (((rawY + R) % span) + span) % span - R;
+        const x = bl.bx * w + Math.sin(t * bl.wf + bl.ph) * bl.wob;
+        const r = R * (1 + 0.1 * Math.sin(t * 0.5 + bl.ph));
         const g = ctx.createRadialGradient(x, y, 0, x, y, r);
         g.addColorStop(0, `rgba(10,10,10,${bl.a})`);
-        g.addColorStop(0.65, `rgba(10,10,10,${bl.a * 0.45})`);
+        g.addColorStop(0.72, `rgba(10,10,10,${bl.a * 0.8})`);
         g.addColorStop(1, 'rgba(10,10,10,0)');
         ctx.fillStyle = g;
         ctx.beginPath();
