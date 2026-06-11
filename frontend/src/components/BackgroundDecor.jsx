@@ -6,12 +6,12 @@ const BASE_A = 0.15;
 const RADIUS = 180;
 
 const BLOBS = [
-  { bx: 0.15, by: 0.25, r: 0.36, ax: 120, ay: 80, fx: 0.32, fy: 0.22, ph: 0.0, par: 0.18, a: 0.120 },
-  { bx: 0.85, by: 0.15, r: 0.30, ax: 90, ay: 110, fx: 0.21, fy: 0.30, ph: 2.1, par: 0.30, a: 0.100 },
-  { bx: 0.70, by: 0.78, r: 0.40, ax: 140, ay: 90, fx: 0.17, fy: 0.26, ph: 4.2, par: 0.12, a: 0.130 },
-  { bx: 0.30, by: 0.90, r: 0.28, ax: 100, ay: 120, fx: 0.27, fy: 0.19, ph: 1.3, par: 0.24, a: 0.100 },
-  { bx: 0.52, by: 0.45, r: 0.33, ax: 150, ay: 100, fx: 0.23, fy: 0.16, ph: 5.4, par: 0.36, a: 0.090 },
-  { bx: 0.04, by: 0.62, r: 0.24, ax: 80, ay: 90, fx: 0.29, fy: 0.24, ph: 3.0, par: 0.20, a: 0.100 },
+  { bx: 0.15, by: 0.25, r: 0.38, ax: 150, ay: 100, fx: 0.42, fy: 0.30, ph: 0.0, par: 0.18, a: 0.190 },
+  { bx: 0.85, by: 0.15, r: 0.32, ax: 110, ay: 140, fx: 0.28, fy: 0.40, ph: 2.1, par: 0.30, a: 0.160 },
+  { bx: 0.70, by: 0.78, r: 0.42, ax: 170, ay: 110, fx: 0.23, fy: 0.34, ph: 4.2, par: 0.12, a: 0.200 },
+  { bx: 0.30, by: 0.90, r: 0.30, ax: 130, ay: 150, fx: 0.36, fy: 0.25, ph: 1.3, par: 0.24, a: 0.160 },
+  { bx: 0.52, by: 0.45, r: 0.35, ax: 190, ay: 130, fx: 0.31, fy: 0.21, ph: 5.4, par: 0.36, a: 0.140 },
+  { bx: 0.04, by: 0.62, r: 0.26, ax: 100, ay: 110, fx: 0.39, fy: 0.32, ph: 3.0, par: 0.20, a: 0.160 },
 ];
 
 export default function BackgroundDecor() {
@@ -101,10 +101,11 @@ export default function BackgroundDecor() {
       last = now;
       const t = now / 1000;
 
-      scrollSmooth += (window.scrollY - scrollSmooth) * 0.07 * dt;
-      cur.x += (target.x - cur.x) * 0.11 * dt;
-      cur.y += (target.y - cur.y) * 0.11 * dt;
-      intensity += (intensityTarget - intensity) * 0.07 * dt;
+      const follow = Math.min(0.55 * dt, 1);
+      scrollSmooth += (window.scrollY - scrollSmooth) * 0.09 * dt;
+      cur.x += (target.x - cur.x) * follow;
+      cur.y += (target.y - cur.y) * follow;
+      intensity += (intensityTarget - intensity) * 0.10 * dt;
 
       ctx.clearRect(0, 0, w, h);
       drawBlobs(t);
