@@ -37,7 +37,7 @@ export default function AuthView({ onAuthed }) {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden bg-neutral-50 geo-grid isolate">
+    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden bg-neutral-50 isolate">
       <BackgroundDecor />
 
       <motion.div

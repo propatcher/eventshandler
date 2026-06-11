@@ -148,12 +148,3 @@ button:not(:disabled):not([aria-disabled="true"]):active {
   .skeleton { animation: none; }
 }
 
-@keyframes drift-1 { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(22px, -30px) rotate(8deg); } }
-@keyframes drift-2 { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(-26px, 22px) rotate(-10deg); } }
-@keyframes drift-3 { 0%, 100% { transform: translate(0, 0) rotate(0deg); } 50% { transform: translate(18px, 26px) rotate(14deg); } }
-.float-1 { animation: drift-1 19s ease-in-out infinite; }
-.float-2 { animation: drift-2 24s ease-in-out infinite; }
-.float-3 { animation: drift-3 28s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) {
-  .float-1, .float-2, .float-3 { animation: none; }
-}

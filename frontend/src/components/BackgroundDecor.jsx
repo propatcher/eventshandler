@@ -1,25 +1,119 @@
+import { useEffect, useRef } from 'react';
+
+const GAP = 24;
+const BASE_R = 1;
+const BASE_A = 0.15;
+const RADIUS = 170;
+
 export default function BackgroundDecor() {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const fine = window.matchMedia('(pointer: fine)').matches;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const interactive = fine && !reduced;
+
+    let w = 0, h = 0, dpr = 1;
+    let base = null;
+    let raf = 0;
+    let running = false;
+    const cur = { x: -9999, y: -9999 };
+    const target = { x: -9999, y: -9999 };
+
+    const buildBase = () => {
+      base = document.createElement('canvas');
+      base.width = Math.max(w * dpr, 1);
+      base.height = Math.max(h * dpr, 1);
+      const b = base.getContext('2d');
+      b.setTransform(dpr, 0, 0, dpr, 0, 0);
+      b.fillStyle = `rgba(10,10,10,${BASE_A})`;
+      for (let x = 0; x <= w + GAP; x += GAP) {
+        for (let y = 0; y <= h + GAP; y += GAP) {
+          b.beginPath();
+          b.arc(x, y, BASE_R, 0, Math.PI * 2);
+          b.fill();
+        }
+      }
+    };
+
+    const paint = () => {
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(base, 0, 0, w, h);
+      if (!interactive) return;
+      const x0 = Math.max(0, Math.ceil((cur.x - RADIUS) / GAP) * GAP);
+      const y0 = Math.max(0, Math.ceil((cur.y - RADIUS) / GAP) * GAP);
+      const x1 = Math.min(w + GAP, cur.x + RADIUS);
+      const y1 = Math.min(h + GAP, cur.y + RADIUS);
+      for (let x = x0; x <= x1; x += GAP) {
+        for (let y = y0; y <= y1; y += GAP) {
+          const d = Math.hypot(x - cur.x, y - cur.y);
+          if (d >= RADIUS) continue;
+          const k = 1 - d / RADIUS;
+          const e = k * k * (3 - 2 * k);
+          ctx.beginPath();
+          ctx.arc(x, y, BASE_R + e * 1.9, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(10,10,10,${BASE_A + e * 0.5})`;
+          ctx.fill();
+        }
+      }
+    };
+
+    const tick = () => {
+      cur.x += (target.x - cur.x) * 0.16;
+      cur.y += (target.y - cur.y) * 0.16;
+      paint();
+      if (Math.hypot(target.x - cur.x, target.y - cur.y) > 0.4) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        running = false;
+      }
+    };
+
+    const wake = () => {
+      if (!running) {
+        running = true;
+        raf = requestAnimationFrame(tick);
+      }
+    };
+
+    const onMove = (e) => { target.x = e.clientX; target.y = e.clientY; wake(); };
+    const onLeave = () => { target.x = -9999; target.y = -9999; wake(); };
+
+    const resize = () => {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = window.innerWidth;
+      h = window.innerHeight;
+      canvas.width = Math.max(w * dpr, 1);
+      canvas.height = Math.max(h * dpr, 1);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      buildBase();
+      paint();
+    };
+
+    resize();
+    window.addEventListener('resize', resize);
+    if (interactive) {
+      window.addEventListener('mousemove', onMove, { passive: true });
+      document.documentElement.addEventListener('mouseleave', onLeave);
+    }
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', onMove);
+      document.documentElement.removeEventListener('mouseleave', onLeave);
+    };
+  }, []);
+
   return (
-    <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <span className="float-1 absolute top-[12%] left-[7%] w-32 h-32 border border-neutral-300/70" />
-      <span className="float-2 absolute top-[20%] right-[10%] w-24 h-24 border border-neutral-400/60 rotate-12" />
-      <span className="float-3 absolute bottom-[16%] left-[15%] w-16 h-16 border-2 border-neutral-300/70" />
-      <span className="float-1 absolute bottom-[24%] right-[9%] w-28 h-28 border border-neutral-400/55 -rotate-6" />
-
-      <svg className="float-2 absolute top-[58%] left-[12%]" width="96" height="96" viewBox="0 0 100 100" fill="none">
-        <polygon points="50,8 92,88 8,88" stroke="#9ca3af" strokeOpacity="0.7" strokeWidth="2" strokeLinejoin="round" />
-      </svg>
-      <svg className="float-3 absolute top-[16%] left-[46%]" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.6" strokeLinecap="round" strokeOpacity="0.8">
-        <path d="M12 5v14M5 12h14" />
-      </svg>
-      <svg className="float-1 absolute bottom-[12%] right-[26%]" width="64" height="64" viewBox="0 0 64 64" fill="none">
-        <circle cx="32" cy="32" r="30" stroke="#9ca3af" strokeOpacity="0.6" strokeWidth="2" />
-      </svg>
-
-      <span className="float-2 absolute top-[40%] right-[30%] w-3 h-3 bg-neutral-400/70" />
-      <span className="float-3 absolute top-[30%] left-[28%] w-2 h-2 bg-neutral-400/60" />
-      <span className="float-1 absolute bottom-[38%] left-[5%] w-2.5 h-2.5 bg-neutral-400/60" />
-      <span className="float-2 absolute bottom-[8%] left-[40%] w-2 h-2 bg-neutral-400/60" />
-    </div>
+    <canvas
+      ref={ref}
+      aria-hidden="true"
+      className="pointer-events-none fixed inset-0 -z-10"
+    />
   );
 }

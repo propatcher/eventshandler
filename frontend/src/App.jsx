@@ -170,7 +170,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 geo-grid isolate text-neutral-900 overflow-x-hidden">
+    <div className="min-h-screen bg-neutral-50 isolate text-neutral-900 overflow-x-hidden">
       <BackgroundDecor />
 
       <aside className="hidden md:flex fixed inset-y-0 left-0 w-60 bg-white/75 backdrop-blur-xl border-r border-neutral-200/70 flex-col p-4 z-30">
