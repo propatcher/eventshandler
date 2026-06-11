@@ -6,13 +6,13 @@ const BASE_A = 0.16;
 const CURSOR_R = 180;
 
 const BLOBS = [
-  { bx: 0.12, r: 0.20, vy: 26, wob: 90, wf: 0.35, ph: 0.0, par: 0.16, s: 1.0 },
-  { bx: 0.32, r: 0.26, vy: 18, wob: 120, wf: 0.24, ph: 1.7, par: 0.26, s: 0.9 },
-  { bx: 0.50, r: 0.16, vy: 38, wob: 70, wf: 0.45, ph: 3.1, par: 0.10, s: 0.8 },
-  { bx: 0.66, r: 0.24, vy: 22, wob: 110, wf: 0.28, ph: 4.4, par: 0.32, s: 1.0 },
-  { bx: 0.82, r: 0.18, vy: 32, wob: 80, wf: 0.38, ph: 0.9, par: 0.14, s: 0.85 },
-  { bx: 0.95, r: 0.14, vy: 42, wob: 60, wf: 0.50, ph: 2.5, par: 0.22, s: 0.75 },
-  { bx: 0.04, r: 0.22, vy: 20, wob: 100, wf: 0.30, ph: 5.2, par: 0.20, s: 0.9 },
+  { bx: 0.12, r: 0.20, vy: 48, wob: 90, wf: 0.55, ph: 0.0, par: 0.16, s: 1.0 },
+  { bx: 0.32, r: 0.26, vy: 36, wob: 120, wf: 0.38, ph: 1.7, par: 0.26, s: 0.9 },
+  { bx: 0.50, r: 0.16, vy: 68, wob: 70, wf: 0.70, ph: 3.1, par: 0.10, s: 0.8 },
+  { bx: 0.66, r: 0.24, vy: 42, wob: 110, wf: 0.45, ph: 4.4, par: 0.32, s: 1.0 },
+  { bx: 0.82, r: 0.18, vy: 58, wob: 80, wf: 0.60, ph: 0.9, par: 0.14, s: 0.85 },
+  { bx: 0.95, r: 0.14, vy: 76, wob: 60, wf: 0.80, ph: 2.5, par: 0.22, s: 0.75 },
+  { bx: 0.04, r: 0.22, vy: 38, wob: 100, wf: 0.48, ph: 5.2, par: 0.20, s: 0.9 },
 ];
 
 export default function BackgroundDecor() {
@@ -43,7 +43,7 @@ export default function BackgroundDecor() {
         const rawY = y0 - t * bl.vy - scrollSmooth * bl.par;
         const y = (((rawY + R) % span) + span) % span - R;
         const x = bl.bx * w + Math.sin(t * bl.wf + bl.ph) * bl.wob;
-        const r = R * (1 + 0.08 * Math.sin(t * 0.5 + bl.ph));
+        const r = R * (1 + 0.08 * Math.sin(t * 0.8 + bl.ph));
         return { x, y, r, r2: r * r, s: bl.s };
       });
     };
